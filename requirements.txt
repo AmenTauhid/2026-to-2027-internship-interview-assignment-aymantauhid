@@ -1,0 +1,4 @@
+duckdb==1.4.4
+python-dotenv==1.2.1
+polars==1.38.1
+pyarrow
