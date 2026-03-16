@@ -161,11 +161,11 @@ SCOPE_NAMES = [s[0] for s in SCOPES]
 
 st.title("A self-reinforcing cycle in federal procurement")
 st.markdown(
-    "Year-end budget pressure leads to rushed contracts. "
-    "Those contracts grow through amendments, disproportionately benefiting a small group of vendors "
-    "who then receive even more spend. "
+    "- Year-end budget pressure leads to rushed contracts\n"
+    "- Those contracts grow through amendments\n"
+    "- A small group of vendors benefits disproportionately, reinforcing the cycle\n\n"
     "**1.26M rows of Government of Canada procurement data (excl. National Defence) reveal the pattern.**"
-, unsafe_allow_html=True)
+)
 
 # ---------------------------------------------------------------------------
 # Overview metrics
@@ -223,9 +223,9 @@ with tab1:
     m3.metric("Q4 Sole-Source Rate (post-2019)", f"{sole_src[0]:.1f}%" if sole_src[0] else "N/A")
 
     st.markdown('<div class="insight-box">'
-        "Canada's fiscal year ends March 31. Q4 (January-March) is the final quarter "
-        "before budgets reset. If departments rush to spend, it should show up as more "
-        "contracts and higher values in Q4."
+        "- Canada's fiscal year ends March 31<br>"
+        "- Q4 (Jan-Mar) is the final quarter before budgets reset<br>"
+        "- If departments rush to spend, Q4 should show more contracts and higher values"
         '</div>', unsafe_allow_html=True)
 
     # Row 1: Q4 avg contract value by scope
@@ -299,22 +299,23 @@ with tab1:
     with col_f:
         st.markdown('<div class="finding-box">'
             "<b>The pattern</b><br>"
-            "Q4 sees 20% more procurement activity post-2019. "
-            "Construction contracts average 5.84x higher in Q4 (post-2019), "
-            "up from 3.4x across all years. "
-            "Amendments are more concentrated in Q4 (32.7%) than new contracts (27.5%)."
+            "- Q4 sees 20% more procurement activity post-2019<br>"
+            "- Construction contracts average 5.84x higher in Q4 (post-2019)<br>"
+            "- Amendments more concentrated in Q4 (32.7%) than new contracts (27.5%)<br>"
+            "- Sole-source rate higher in Q4 (41.3% vs 39.1%)"
             '</div>', unsafe_allow_html=True)
     with col_w:
         st.markdown('<div class="insight-box">'
             "<b>Why it matters</b><br>"
-            "Classic 'use it or lose it' budget behaviour. Departments rush to spend remaining budget before "
-            "March 31 or risk losing it next fiscal year. This pressure leads to less competition "
-            "(sole-source 41.3% vs 39.1%), oversized construction awards, and poorly scoped contracts "
-            "that set up the amendment growth in Insight 2."
+            "- 'Use it or lose it' budget behaviour<br>"
+            "- Departments rush to spend before March 31 or risk losing next year's budget<br>"
+            "- Leads to less competition, oversized awards, and poorly scoped contracts<br>"
+            "- Sets up the amendment growth in Insight 2"
             '</div>', unsafe_allow_html=True)
     with col_a:
         st.markdown('<div class="action-box">'
             "<b>What to do</b><br>"
+            "- Q3 early warning: alert departments whose Q1-Q3 spending is low relative to budget<br>"
             "- Flag high-value Q4 construction contracts for additional review<br>"
             "- Track Q4 sole-source rates by department<br>"
             "- Consider multi-year budgeting for recurring needs"
@@ -350,8 +351,9 @@ with tab2:
     am3.metric("Contracts That More Than Double", f"{growth_500[0]:.1f}%" if growth_500[0] else "N/A")
 
     st.markdown('<div class="insight-box">'
-        "Amendments modify existing contracts after award. The rate has jumped from 16% to 25% "
-        "of all transactions since 2019. Some contracts grow by thousands of percent."
+        "- Amendments modify existing contracts after award<br>"
+        "- Rate jumped from 16% to 25% of all transactions since 2019<br>"
+        "- Some contracts grow by thousands of percent"
         '</div>', unsafe_allow_html=True)
 
     # Row 1: Amendment rate over time (inherently shows all years as a time series)
@@ -447,17 +449,17 @@ with tab2:
     with col_f2:
         st.markdown('<div class="finding-box">'
             "<b>The pattern</b><br>"
-            "~25% of all rows are amendments post-2019. "
-            "Services: 31.4% amendment rate, median 38% growth. "
-            "Amendments spike in Q4 (28.2% vs 23.3%) - year-end pressure drives scope expansion too."
+            "- ~25% of all rows are amendments post-2019<br>"
+            "- Services: 31.4% amendment rate<br>"
+            "- Amendments spike in Q4 (28.2% vs 23.3%)<br>"
+            "- Some contracts grow from $18.6M to $1B through 16 amendments"
             '</div>', unsafe_allow_html=True)
     with col_w2:
         st.markdown('<div class="insight-box">'
             "<b>Why it matters</b><br>"
-            "A contract that grows from $18.6M to $1B through 16 amendments has effectively bypassed "
-            "the competitive process used for the original award. The Q4 connection makes it worse: "
-            "contracts rushed at year-end are more likely to need scope changes later, "
-            "creating a pipeline from budget pressure to uncompeted growth."
+            "- Massive growth effectively bypasses the original competitive process<br>"
+            "- Q4-rushed contracts are more likely to need scope changes later<br>"
+            "- Creates a pipeline from budget pressure to uncompeted growth"
             '</div>', unsafe_allow_html=True)
     with col_a2:
         st.markdown('<div class="action-box">'
@@ -510,9 +512,8 @@ with tab3:
     vm3.metric("Others Amendment Rate", f"{tier_row[1]:.1f}%" if tier_row[1] else "N/A")
 
     st.markdown('<div class="insight-box">'
-        "With 126,000+ vendors in the dataset, is spending spread broadly or concentrated "
-        "in a few? And do the biggest vendors benefit disproportionately from the amendment "
-        "pattern we found in Insight 2?"
+        "- 126,000+ vendors in the dataset - is spending spread broadly or concentrated?<br>"
+        "- Do the biggest vendors benefit disproportionately from amendments (Insight 2)?"
         '</div>', unsafe_allow_html=True)
 
     # Row 1: Vendor concentration by scope
@@ -617,17 +618,16 @@ with tab3:
     with col_f3:
         st.markdown('<div class="finding-box">'
             "<b>The pattern</b><br>"
-            "Top 50 vendors (out of 126,000+) hold 55% of all spend. "
-            "Their amendment rate is 38% - nearly double the 21% for others. "
-            "18 departments have >30% of spend with a single vendor."
+            "- Top 50 vendors (out of 126,000+) hold 55% of all spend<br>"
+            "- Their amendment rate is 38% - nearly double the 21% for others<br>"
+            "- 18 departments have >30% of spend with a single vendor"
             '</div>', unsafe_allow_html=True)
     with col_w3:
         st.markdown('<div class="insight-box">'
             "<b>Why it matters</b><br>"
-            "Vendor lock-in reduces negotiating leverage and creates supply chain risk. "
-            "The biggest vendors also get amended the most, meaning they benefit from both "
-            "the initial award and the subsequent scope expansion. "
-            "This completes the cycle: Q4 rush, amendment growth, vendor concentration."
+            "- Vendor lock-in reduces negotiating leverage and creates supply chain risk<br>"
+            "- Biggest vendors benefit from both the initial award and scope expansion<br>"
+            "- Completes the cycle: Q4 rush, amendment growth, vendor concentration"
             '</div>', unsafe_allow_html=True)
     with col_a3:
         st.markdown('<div class="action-box">'
@@ -645,45 +645,37 @@ with tab3:
 with tab5:
     st.header("What I'd investigate next")
 
-    st.markdown(
-        "These three insights raise follow-up questions that would deepen the analysis "
-        "and sharpen the recommendations."
-    )
-
     ns1, ns2 = st.columns(2)
 
     with ns1:
         st.markdown('<div class="insight-box">'
-            "<b>1. Do Q4-awarded contracts get amended more later?</b><br><br>"
-            "We showed amendments are more common <i>in</i> Q4, but are contracts <i>awarded</i> in Q4 "
-            "more likely to be amended in subsequent quarters? If yes, it confirms that year-end "
-            "rush leads to poorly scoped contracts that need fixing later - a direct causal link "
-            "between Insight 1 and Insight 2."
+            "<b>1. Test the causal chain: Q4 rush to amendments</b><br>"
+            "- Are contracts <i>awarded</i> in Q4 amended more in later quarters?<br>"
+            "- Would confirm that year-end rush causes poorly scoped contracts<br>"
+            "- Direct causal link between Insight 1 and Insight 2"
             '</div>', unsafe_allow_html=True)
 
         st.markdown('<div class="insight-box">'
-            "<b>2. Vendor name normalization</b><br><br>"
-            "The same vendor appears under 10+ spellings (e.g., 'Canadian Corps of Commissionaires' "
-            "has 10,200+ rows across variants). Fuzzy matching would reveal the true vendor "
-            "concentration, which is likely significantly higher than the 55% reported for the top 50. "
-            "This is a data engineering prerequisite for any serious vendor analysis."
+            "<b>2. Do top vendors bid low and grow through amendments?</b><br>"
+            "- Compare original vs. final values by vendor tier<br>"
+            "- If top vendors consistently win low and grow high, it suggests strategic low-bidding<br>"
+            "- Would inform bid evaluation criteria"
             '</div>', unsafe_allow_html=True)
 
     with ns2:
         st.markdown('<div class="insight-box">'
-            "<b>3. Do top vendors bid low and grow through amendments?</b><br><br>"
-            "If top vendors consistently win at lower original values but end up with higher final "
-            "values through amendments, it would suggest strategic low-bidding followed by scope "
-            "expansion. Comparing original vs. final values by vendor tier would test this hypothesis "
-            "and could inform bid evaluation criteria."
+            "<b>3. Department-level risk scores</b><br>"
+            "- Combine Q4 surge, amendment rate, and vendor concentration into one score per department<br>"
+            "- Identifies which departments have the worst combination of all three risks<br>"
+            "- Prioritizes oversight where it matters most"
             '</div>', unsafe_allow_html=True)
 
         st.markdown('<div class="insight-box">'
-            "<b>4. Which contract descriptions drive the Q4 surge?</b><br><br>"
-            "Knowing whether the Q4 rush is driven by temporary help, consulting, construction, "
-            "or IT contracts would sharpen the recommendation. Different categories need different "
-            "interventions - multi-year budgeting for recurring needs, better scoping for consulting, "
-            "seasonal planning for construction."
+            "<b>4. Local economic intelligence - the Halton share</b><br>"
+            "- Filter <code>vendor_postal_code</code> (mandatory post-2019) by Halton prefixes (L6, L7, L9)<br>"
+            "- Identify how much federal contract money flows into Oakville, Burlington, Milton, Halton Hills<br>"
+            "- Reveal which local industries are winning federal business<br>"
+            "- Give Economic Development concrete data to attract similar companies"
             '</div>', unsafe_allow_html=True)
 
 st.markdown("---")

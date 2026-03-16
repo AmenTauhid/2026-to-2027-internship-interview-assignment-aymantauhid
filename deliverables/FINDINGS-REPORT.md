@@ -1,4 +1,12 @@
-# Government of Canada Contracts Over $10,000 - Findings Report
+# A Self-Reinforcing Cycle in Federal Procurement
+
+- Year-end budget pressure leads to rushed contracts
+- Those contracts grow through amendments
+- A small group of vendors benefits disproportionately, reinforcing the cycle
+
+1.26M rows of Government of Canada procurement data (excl. National Defence) reveal the pattern.
+
+---
 
 ## What is this dataset?
 
@@ -15,68 +23,52 @@
 
 ### Data completeness
 
-Post-2019 data (mandatory reporting) is the primary evidence base for this analysis. Pre-2019 data is used as supporting evidence where core fields (`contract_value`, `reporting_period`, `vendor_name`, `instrument_type`) are populated, but pre-2019 reporting was voluntary, so volume counts from that era are inflated. Pre-2019 data also has gaps in process fields (`solicitation_procedure`, `commodity_type` are 35-97% missing). Where analysis requires process fields (e.g., sole-source rates, commodity breakdowns), only post-2019 data is used and this is noted.
+- **Pre-2019**: Voluntary reporting. `commodity_type`, `instrument_type` not mandatory. Volume counts inflated.
+- **Post-2019**: Mandatory reporting. Core fields reliable. Primary evidence base.
 
 ### Data quality issues encountered
 
-1. **Malformed `reporting_period`**: ~2,600 rows with values like "C", "Q1", "2010-11-Q4", "2108-2019". **Decision**: excluded from all time-based analysis using `LIKE '____-____-Q_'` filter.
-2. **Vendor name inconsistency**: Same vendor appears under multiple spellings (case, periods, abbreviations). "Canadian Corps of Commissionaires" has 10+ variants totaling 10,000+ rows. **Impact**: vendor concentration metrics (Insight 3) likely understate true concentration.
-3. **`reporting_period` is reporting date, not award date**: This field records when a contract was disclosed to the public, not when it was awarded. Only mandatory after 2019-01-01. **Impact**: Q4 patterns (Insight 1) could partially reflect reporting lag. However, the pattern is too large and consistent to be explained by lag alone.
-4. **All columns load as VARCHAR**: Financial fields (`contract_value`, `original_value`, `amendment_value`) require explicit casting. Zero cast failures across all 1.26M rows - financial data is clean.
-5. **28% of rows have no `instrument_type`**: These are older records before the field was mandatory. **Decision**: excluded from any analysis that depends on distinguishing contracts from amendments.
+1. **Malformed `reporting_period`**: ~2,600 rows with values like "C", "Q1", "2010-11-Q4", "2108-2019". Excluded using `LIKE '____-____-Q_'` filter.
+2. **Vendor name inconsistency**: Same vendor appears under multiple spellings (case, periods, abbreviations). "Canadian Corps of Commissionaires" has 10+ variants totaling 10,000+ rows. Vendor concentration metrics likely understate true concentration.
+3. **`reporting_period` is reporting date, not award date**: Records when a contract was disclosed, not when it was awarded. Only mandatory after 2019-01-01. Q4 patterns could partially reflect reporting lag, but the pattern is too large and consistent to be explained by lag alone.
+4. **All columns load as VARCHAR**: Financial fields require explicit casting. Zero cast failures across all 1.26M rows.
+5. **28% of rows have no `instrument_type`**: Older records before the field was mandatory. Excluded from contract/amendment analysis.
 
 ### Assumptions
 
-- **Vendor names used as-is** without fuzzy matching or normalization. This means vendor concentration is conservatively estimated - the real concentration is higher.
-- **`contract_value` on amendment rows represents the cumulative running total**, not the incremental amendment amount. This is how we estimate contract growth (comparing max `contract_value` to min `original_value` within a `procurement_id`).
-- **National Defence excluded** because its procurement (shipbuilding, fighter jets, armoured vehicles) is structurally different and would dominate every metric. All numbers in this report are civilian departments only.
-- **All values are nominal CAD** - not adjusted for inflation. Real growth over time would be somewhat lower than the nominal figures shown.
+- Vendor names used as-is without normalization - concentration is conservatively estimated
+- `contract_value` on amendment rows = cumulative running total, not incremental amount
+- National Defence excluded (structurally different procurement)
+- All values nominal CAD, not inflation-adjusted
 
 ---
 
 ## Insight 1: Fiscal year-end (Q4) spending surge
 
-*Volume uses all transaction types. Value uses new contracts only (amendment values are cumulative totals, not new spending). Both all-years and post-2019 numbers shown. Pre-2019 reporting_period was voluntary, so all-years volume is inflated. Post-2019 is the more reliable measure for volume. Value patterns are consistent across both.*
-
 ### The pattern
 
-Canada's fiscal year ends March 31. Q4 (January-March) shows a clear year-end surge:
+- Q4 sees 20% more procurement activity post-2019
+- Construction contracts average 5.84x higher in Q4 (post-2019)
+- Amendments more concentrated in Q4 (32.7%) than new contracts (27.5%)
+- Sole-source rate higher in Q4 (41.3% vs 39.1%)
 
-**Volume:**
-- All years: +38% more procurement activity in Q4 (but pre-2019 reporting was voluntary, inflating this)
-- Post-2019 (mandatory reporting): +20% - the cleaner measure
+### Why it matters
 
-**Value** (new contracts only):
-- All years: Q4 avg $215K vs $177K, 34.8% of value in Q4
-- Post-2019: Q4 avg $293K vs $202K, 35.4% of value in Q4, dollar premium of $8.31B
+- 'Use it or lose it' budget behaviour
+- Departments rush to spend before March 31 or risk losing next year's budget
+- Leads to less competition, oversized awards, and poorly scoped contracts
+- Sets up the amendment growth in Insight 2
 
-The pattern is intensifying in recent data - the Q4 value multiplier reached **1.89x** post-2022, up from 1.04x in 2019-2022.
+### What to do
 
-### Two channels
-
-The rush operates through both new awards and scope expansion on existing contracts (post-2019):
-- **New contracts**: 27.5% fall in Q4 (expected: 25%)
-- **Amendments**: 32.7% fall in Q4 - even more concentrated than new awards
-
-The non-competitive (sole-source) rate is also higher in Q4: **41.3% vs 39.1%** in Q1-Q3 (post-2019 only - `solicitation_procedure` field not available before).
-
-### Construction hit hardest
-
-**Construction:**
-- All years: 3.4x multiplier ($1.07M vs $314K)
-- Post-2019: 5.84x multiplier ($1.56M vs $267K) - intensifying
-
-Services and goods show modest differences (1.05x and 1.02x).
-
-### Recommendations
-
+- Q3 early warning: alert departments whose Q1-Q3 spending is low relative to budget - they will likely surge in Q4
 - Flag high-value Q4 construction contracts for additional review
-- Track Q4 sole-source and amendment rates by department on a quarterly dashboard
-- Consider multi-year budgeting for recurring needs to reduce the year-end rush
+- Track Q4 sole-source rates by department
+- Consider multi-year budgeting for recurring needs
 
 ### Caveat
 
-`reporting_period` records when a contract was *reported*, not when it was *awarded*. Some Q4 entries may be backlog from earlier quarters. The pattern is too large and consistent to be explained by reporting lag alone.
+`reporting_period` records when a contract was *reported*, not when it was *awarded*. The pattern is too large and consistent to be explained by reporting lag alone.
 
 ---
 
@@ -84,18 +76,40 @@ Services and goods show modest differences (1.05x and 1.02x).
 
 ### The pattern
 
-- **1 in 4 transaction rows is now an amendment** (~25% rate)
-- Of amended contracts: **40% more than double in value**, 10.5% grow by **500%+**
+- ~25% of all rows are amendments post-2019
+- Services: 31.4% amendment rate
+- Amendments spike in Q4 (28.2% vs 23.3%)
+- Some contracts grow from $18.6M to $1B through 16 amendments
 
-### By commodity type
+### By commodity type (post-2019)
 
-| Commodity | Amendment rate | Median growth | % that more than double |
+| Commodity | Amendment rate | Median growth | P95 growth |
 |---|---|---|---|
-| Services | 31.4% | 38% | 28.2% |
-| Construction | 30.4% | 16% | 8.2% |
-| Goods | 9.0% | 12% | 17.3% |
+| Services | 31.4% | 36% | 371% |
+| Construction | 30.4% | 15% | 155% |
+| Goods | 9.0% | 9% | 232% |
 
-Services are the highest-risk category - amended most often and with the largest growth. Construction has a similar amendment rate but smaller amendments. Goods are rarely amended.
+### By solicitation procedure (post-2019)
+
+- **Competitive contracts: 26.2% amendment rate**
+- **Sole-source contracts: 14.3% amendment rate**
+- Competitive contracts get amended nearly twice as often - consistent with vendors bidding low to win, then expanding through amendments
+
+### Top departments by amendment rate (post-2019)
+
+| Department | Amendment rate |
+|---|---|
+| Canada Revenue Agency | 51.0% |
+| IRCC | 46.7% |
+| ESDC | 44.8% |
+| PSPC | 40.2% |
+
+### Dollar scale (post-2019)
+
+- 44,030 contracts were amended
+- Original total: $29.1B
+- Final total: $42.5B
+- **$13.4B added through amendments** (46% growth without re-competing)
 
 ### Extreme examples (excl. Defence)
 
@@ -107,20 +121,22 @@ Services are the highest-risk category - amended most often and with the largest
 | Vancouver Shipyards | Fisheries and Oceans | $179.9M | $1.07B | +495% |
 | Ellisdon Corporation | PSPC | $40K | $623.4M | +1,558,436% |
 
-### Connection to Q4
+### Why it matters
 
-The amendment rate is higher in Q4 (25.7% of Q4 rows are amendments vs 22.2% in Q1-Q3). Year-end pressure drives both new awards and scope expansion on existing contracts.
+- Massive growth effectively bypasses the original competitive process
+- Q4-rushed contracts are more likely to need scope changes later
+- Creates a pipeline from budget pressure to uncompeted growth
 
-### Recommendations
+### What to do
 
-- Set amendment thresholds - if cumulative amendments exceed 50% of original value, require documented justification or re-compete
-- Separate routine amendments (small extensions) from material ones (scope changes) by size relative to original value
-- Track amendment rates by commodity type - services need the most oversight, not construction as might be assumed
-- Watch Q4 amendments specifically - year-end pressure drives both channels
+- Set amendment thresholds (e.g., re-compete at 50% growth)
+- Separate routine from material amendments by size
+- Focus oversight on services (highest growth risk)
+- Monitor Q4 amendments as a compounding risk
 
 ### Caveat
 
-We estimate growth by comparing `MAX(contract_value)` to `MIN(original_value)` across rows sharing a `procurement_id`. This depends on consistent reporting across amendment entries.
+Growth estimated by comparing `MAX(contract_value)` to `MIN(original_value)` across rows sharing a `procurement_id`. Some amendment rows include restatements/corrections, not just scope expansion.
 
 ---
 
@@ -128,7 +144,11 @@ We estimate growth by comparing `MAX(contract_value)` to `MIN(original_value)` a
 
 ### The pattern
 
-Out of 126,000+ vendors (excl. Defence), spending is heavily concentrated:
+- Top 50 vendors (out of 126,000+) hold 55% of all spend
+- Their amendment rate is 38% - nearly double the 21% for others
+- 18 departments have >30% of spend with a single vendor
+
+### Vendor concentration
 
 | Vendor Group | % of Total Spend |
 |---|---|
@@ -138,20 +158,7 @@ Out of 126,000+ vendors (excl. Defence), spending is heavily concentrated:
 | Top 500 vendors | 79.5% |
 | Remaining 125,969 vendors | 20.5% |
 
-### The connection to amendments
-
-This is what makes vendor concentration more than a descriptive statistic. Top vendors don't just win more work - their contracts grow more through amendments:
-
-| Vendor Tier | Amendment Rate |
-|---|---|
-| Top 50 vendors | **37.7%** |
-| All other vendors | 20.5% |
-
-Top vendors have nearly double the amendment rate. This links directly to Insight 2: the biggest vendors benefit the most from the amendment culture, creating a self-reinforcing cycle.
-
 ### Single-vendor dependency
-
-18 out of 97 departments have more than 30% of their entire spend with a single vendor. The most extreme cases:
 
 | Department | Top Vendor | % of Dept Spend |
 |---|---|---|
@@ -161,72 +168,66 @@ Top vendors have nearly double the amendment rate. This links directly to Insigh
 | Treasury Board | Sun Life Assurance | 38.3% |
 | Canada Border Services | Deloitte Inc | 31.1% |
 | Employment & Social Dev | D+H Corporation | 28.8% |
-| Shared Services Canada | IBM Canada | 21.9% |
 
-### Recommendations
+### Why it matters
 
-- Map vendor dependency for critical services - flag any department where one vendor holds >30% of spend
+- Vendor lock-in reduces negotiating leverage and creates supply chain risk
+- Biggest vendors benefit from both the initial award and scope expansion
+- Completes the cycle: Q4 rush, amendment growth, vendor concentration
+
+### What to do
+
+- Map vendor dependency for critical services
+- Flag departments where one vendor holds >30% of spend
 - Diversify vendor base for recurring contract categories
-- Monitor whether top-vendor contracts are growing disproportionately through amendments
-- Consider vendor name normalization as a data quality initiative - true concentration is likely even higher than reported
+- Monitor whether top-vendor contracts are amended at higher rates
 
 ### Caveat
 
-Vendor names are not normalized. The same vendor can appear under multiple spellings (e.g., "Canadian Corps of Commissionaires" has 10+ variants across 10,200+ rows). True vendor concentration is likely higher than these numbers suggest.
+Vendor names are not normalized. Same vendor can appear under multiple spellings. True vendor concentration is likely higher than reported.
 
 ---
 
-## How the insights connect
-
-These aren't three separate problems. They're a self-reinforcing cycle.
-
-**Q4 pressure** drives a rush of contract awards and amendments at fiscal year-end. **Amendment growth** expands contracts far beyond their original scope - 40% of amended contracts more than double. And **vendor concentration** means the biggest vendors benefit the most from this cycle, with amendment rates nearly double the rest of the market (38% vs 21%).
-
-The cycle works like this: year-end budget pressure creates rushed awards. Those awards go disproportionately to established vendors. Those vendors' contracts then grow through amendments, concentrating even more spending with the same firms. The result is a procurement system where the competitive process used for the original award becomes less meaningful over time.
-
-### Federal benchmarks
+## Federal benchmarks
 
 | Metric | Benchmark |
 |---|---|
 | Q4 volume surge | +20% (post-2019) to +38% (all years) |
 | Q4 share of contract value | 34.8% all years, 35.4% post-2019 (expected: 25%) |
-| Q4 avg contract value vs Q1-Q3 | $215K vs $177K (all years), $293K vs $202K (post-2019) |
 | Q4 construction value multiplier | 3.4x (all years), 5.84x (post-2019) |
 | Q4 sole-source rate vs Q1-Q3 | 41.3% vs 39.1% (post-2019) |
 | Q4 share of amendments | 32.7% (vs 27.5% for new contracts, post-2019) |
-| Amendment rate | ~25% |
-| Services amendment rate | 31.4% |
+| Amendment rate | ~25% (post-2019) |
+| Competitive vs sole-source amendment rate | 26.2% vs 14.3% (post-2019) |
+| $ added through amendments | $13.4B (post-2019) |
 | Top 50 vendor share of spend | 55% |
 | Top 50 vendor amendment rate | 37.7% (vs 20.5% for others) |
 | Departments with >30% single-vendor dependency | 18 out of 97 |
-
-These are numbers any government procurement office can compare against.
-
----
-
-## Minor finding: vendor name inconsistency
-
-The same vendor appears under different spellings throughout the dataset. Examples:
-
-| Variant 1 | Variant 2 | Combined rows |
-|---|---|---|
-| CANADIAN CORPS OF COMMISSIONAIRES | Canadian Corps of Commissionaires | 10,200+ |
-| STANTEC CONSULTING LTD. | Stantec Consulting Ltd. | 4,500+ |
-| NISHA TECHNOLOGIES INC. | Nisha Technologies Inc. | 5,100+ |
-
-This is a data engineering issue, not an analytical insight. But it means any vendor-level analysis (concentration, total awards) will undercount true concentration until names are normalized.
 
 ---
 
 ## What I'd investigate next
 
-1. **Do Q4 contracts get amended more than Q1-Q3 contracts?** We showed amendments are more common *in* Q4, but are contracts *awarded* in Q4 more likely to be amended later? That would confirm the "rushed award, expanded later" hypothesis.
+1. **Test the causal chain: Q4 rush to amendments**
+   - Are contracts *awarded* in Q4 amended more in later quarters?
+   - Would confirm that year-end rush causes poorly scoped contracts
+   - Direct causal link between Insight 1 and Insight 2
 
-2. **Which specific contract descriptions drive the Q4 volume surge?** Are certain categories (e.g., temporary help, consulting) disproportionately rushed at year-end? Knowing the category would sharpen the recommendation.
+2. **Do top vendors bid low and grow through amendments?**
+   - Compare original vs. final values by vendor tier
+   - If top vendors consistently win low and grow high, it suggests strategic low-bidding
+   - Would inform bid evaluation criteria
 
-3. **Vendor name normalization** - fuzzy matching vendor names would reveal the true concentration, which is likely even more extreme than reported here.
+3. **Department-level risk scores**
+   - Combine Q4 surge, amendment rate, and vendor concentration into one score per department
+   - Identifies which departments have the worst combination of all three risks
+   - Prioritizes oversight where it matters most
 
-4. **Do top vendors bid low and grow through amendments?** Comparing original award values to final values by vendor tier could reveal whether strategic low-bidding is a pattern.
+4. **Local economic intelligence - the Halton share**
+   - Filter `vendor_postal_code` (mandatory post-2019) by Halton prefixes (L6, L7, L9)
+   - Identify how much federal contract money flows into Oakville, Burlington, Milton, Halton Hills
+   - Reveal which local industries are winning federal business
+   - Give Economic Development concrete data to attract similar companies
 
 ---
 
