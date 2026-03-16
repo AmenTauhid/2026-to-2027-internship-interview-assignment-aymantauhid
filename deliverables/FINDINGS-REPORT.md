@@ -11,75 +11,81 @@
 
 ---
 
-## Data quality and limitations
+## Data quality, limitations, and assumptions
 
 ### Three reporting eras
 
-Mandatory field requirements expanded over time. This matters because cross-era comparisons can be misleading.
+Mandatory field requirements expanded over time. This directly affects what comparisons are valid.
 
-| Era | What became mandatory | Impact |
+| Era | What became mandatory | Impact on this analysis |
 |---|---|---|
-| Pre-2019 | Only `reference_number` | 35-97% missing on process fields |
-| 2019-2022 | Core fields: `procurement_id`, `contract_value`, `commodity_type`, `instrument_type` | Core financial data reliable |
-| Post-2022 | Process fields: `solicitation_procedure`, `vendor_postal_code`, `contracting_entity` | Most complete data |
+| Pre-2019 | Only `reference_number` | 35-97% missing on process fields. Pre-2019 quarterly and solicitation data is incomplete - patterns may reflect missing data, not actual behaviour. |
+| 2019-2022 | Core fields: `procurement_id`, `contract_value`, `commodity_type`, `instrument_type` | Core financial data reliable. Amendment and Q4 analysis most trustworthy from this era onward. |
+| Post-2022 | Process fields: `solicitation_procedure`, `vendor_postal_code`, `contracting_entity` | Most complete data. Where possible, post-2019 or post-2022 numbers are used. |
 
-### Data quality issues found
+### Data quality issues encountered
 
-1. **Malformed reporting_period**: ~2,600 rows with values like "C", "Q1", "2010-11-Q4", "2108-2019". Excluded from time-based analysis.
-2. **Vendor name inconsistency**: Same vendor under multiple spellings (case, periods, abbreviations). "Canadian Corps of Commissionaires" appears under 10+ variants with 10,000+ rows combined. Vendor-level counts may undercount true concentration.
-3. **`reporting_period` records when a contract was reported to the public, not when it was awarded.** Only mandatory after 2019-01-01. This is a limitation for any time-based pattern analysis.
-4. **All columns load as VARCHAR.** Financial fields (`contract_value`, `original_value`, `amendment_value`) require casting. Zero cast failures across all 1.26M rows.
+1. **Malformed `reporting_period`**: ~2,600 rows with values like "C", "Q1", "2010-11-Q4", "2108-2019". **Decision**: excluded from all time-based analysis using `LIKE '____-____-Q_'` filter.
+2. **Vendor name inconsistency**: Same vendor appears under multiple spellings (case, periods, abbreviations). "Canadian Corps of Commissionaires" has 10+ variants totaling 10,000+ rows. **Impact**: vendor concentration metrics (Insight 3) likely understate true concentration.
+3. **`reporting_period` is reporting date, not award date**: This field records when a contract was disclosed to the public, not when it was awarded. Only mandatory after 2019-01-01. **Impact**: Q4 patterns (Insight 1) could partially reflect reporting lag. However, the pattern is too large and consistent to be explained by lag alone.
+4. **All columns load as VARCHAR**: Financial fields (`contract_value`, `original_value`, `amendment_value`) require explicit casting. Zero cast failures across all 1.26M rows - financial data is clean.
+5. **28% of rows have no `instrument_type`**: These are older records before the field was mandatory. **Decision**: excluded from any analysis that depends on distinguishing contracts from amendments.
 
 ### Assumptions
 
-- Vendor names used as-is without normalization (insights don't depend on exact vendor matching)
-- `contract_value` on amendment rows represents the running total, not the amendment amount
-- SOSAs with $0 value are valid by design (frameworks, not spending)
-- Negative `amendment_value` entries are legitimate (scope reductions)
+- **Vendor names used as-is** without fuzzy matching or normalization. This means vendor concentration is conservatively estimated - the real concentration is higher.
+- **`contract_value` on amendment rows represents the cumulative running total**, not the incremental amendment amount. This is how we estimate contract growth (comparing max `contract_value` to min `original_value` within a `procurement_id`).
+- **National Defence excluded** because its procurement (shipbuilding, fighter jets, armoured vehicles) is structurally different and would dominate every metric. All numbers in this report are civilian departments only.
+- **All values are nominal CAD** - not adjusted for inflation. Real growth over time would be somewhat lower than the nominal figures shown.
 
 ---
 
 ## Insight 1: Fiscal year-end (Q4) spending surge
 
+*Scope: excl. Defence, valid reporting periods only. Volume uses all transaction types. Value uses new contracts only (amendment values are cumulative totals, not new spending).*
+
 ### The pattern
 
-Canada's fiscal year ends March 31. Q4 (January-March) consistently shows a volume surge:
-- **38% more contracts** than the Q1-Q3 average
-- But Q4's share of total value is ~25% - roughly proportional
-- Q4 average contract value is actually **lower** ($657K vs $903K for Q1-Q3)
-- The pattern is a rush of many smaller contracts, not fewer large ones
+Canada's fiscal year ends March 31. Q4 (January-March) shows a clear year-end surge:
 
-### What's being rushed
+**Volume** (all transaction types - contracts, amendments, SOSAs):
+- **38% more procurement activity** in Q4 than the Q1-Q3 average (257,055 vs 185,671 avg)
 
-The volume surge is consistent across commodity types, but average values in Q4 are actually lower across the board. This suggests departments are clearing backlogs of smaller procurements at fiscal year-end rather than pushing through large contracts.
+**Value** (new contracts only - the only clean measure of new spending):
+- Q4 average contract value is **$215K vs $177K** in Q1-Q3
+- **34.8% of total contract value** lands in Q4 (expected: 25% if evenly distributed)
 
-### How it happens
+### Two channels
 
-The year-end rush operates through two channels:
-- **New contracts**: 30.6% of all new contracts are in Q4
-- **Amendments**: 34.7% of all amendments are in Q4 - even more concentrated than new awards
+The rush operates through both new awards and scope expansion on existing contracts (post-2019, where reporting is mandatory):
+- **New contracts**: 27.5% fall in Q4 (expected: 25%)
+- **Amendments**: 32.7% fall in Q4 - even more concentrated than new awards
 
-The non-competitive (sole-source) rate is also slightly higher in Q4: 33.9% vs 32.9% in Q1-Q3.
+The non-competitive (sole-source) rate is also higher in Q4: 41.3% vs 39.1% in Q1-Q3 (post-2019, contracts only).
 
-### Era comparison
+### Construction hit hardest
+
+In the post-2019 data, Q4 construction contracts average **5.84x** higher than other quarters ($1.56M vs $267K). Services show a modest 1.13x bump. Goods barely differ (1.02x).
+
+### Era comparison (contracts only)
 
 | Era | Q4 value multiplier | Notes |
 |---|---|---|
-| Pre-2019 | 1.24x | Mild Q4 value premium (but `reporting_period` was not mandatory) |
-| 2019-2022 | 1.06x | Slight Q4 premium |
-| Post-2022 | 0.87x | Q4 value actually *lower* than other quarters |
+| Pre-2019 | 0.91x | No Q4 value surge (but `reporting_period` was not mandatory - data is incomplete) |
+| 2019-2022 | 1.04x | Slight Q4 premium |
+| Post-2022 | 1.89x | Strong and intensifying |
 
-The volume surge is consistent across all eras, but the value pattern has shifted. In recent years, Q4 sees many more contracts at lower average values - consistent with a "use it or lose it" pattern of clearing smaller procurements before fiscal year-end.
+The Q4 pattern is modern and growing. The pre-2019 absence likely reflects incomplete data rather than different behaviour, since `reporting_period` was not mandatory before 2019.
 
 ### Recommendations
 
-- Flag the high volume of Q4 contracts for quality review - rushed smaller contracts may still carry risk
+- Flag high-value Q4 construction contracts for additional review
 - Track Q4 sole-source and amendment rates by department on a quarterly dashboard
 - Consider multi-year budgeting for recurring needs to reduce the year-end rush
 
 ### Caveat
 
-`reporting_period` records when a contract was *reported*, not when it was *awarded*. Some Q4 entries may be backlog from earlier quarters. This limitation is acknowledged but the pattern is too large and consistent to be explained by reporting lag alone.
+`reporting_period` records when a contract was *reported*, not when it was *awarded*. Some Q4 entries may be backlog from earlier quarters. The pattern is too large and consistent to be explained by reporting lag alone.
 
 ---
 
@@ -190,17 +196,20 @@ The cycle works like this: year-end budget pressure creates rushed awards. Those
 
 ### Federal benchmarks
 
-| Metric | Federal benchmark |
-|---|---|
-| Q4 contract count vs Q1-Q3 average | +38% |
-| Q4 construction value (post-2019) | 63% lands in Q4 (5.8x avg multiplier) |
-| Amendment rate (post-2019) | ~25% |
-| Amended contracts that more than double | 40% |
-| Services amendment rate (post-2022) | 31.8% |
-| Top 50 vendor share of total spend | 55% |
-| Top 50 vendor amendment rate | 37.7% (vs 20.5% for others) |
-| Departments with >30% single-vendor dependency | 18 out of 97 |
-| Q4 amendment rate vs Q1-Q3 | 25.7% vs 22.2% |
+| Metric | Benchmark | Scope |
+|---|---|---|
+| Q4 volume surge (all transaction types) | +38% vs Q1-Q3 average | All types, all eras |
+| Q4 share of total contract value | 34.8% (expected: 25%) | Contracts only, all eras |
+| Q4 avg contract value vs Q1-Q3 | $215K vs $177K | Contracts only, all eras |
+| Q4 construction value multiplier | 5.84x | Contracts only, post-2019 |
+| Q4 sole-source rate vs Q1-Q3 | 41.3% vs 39.1% | Contracts only, post-2019 |
+| Q4 share of new contracts | 27.5% | Post-2019 |
+| Q4 share of amendments | 32.7% | Post-2019 |
+| Amendment rate | ~25% | Post-2019 |
+| Services amendment rate | 31.4% | Post-2019 |
+| Top 50 vendor share of total spend | 55% | All eras, excl. Defence |
+| Top 50 vendor amendment rate | 37.7% (vs 20.5% for others) | All eras, excl. Defence |
+| Departments with >30% single-vendor dependency | 18 out of 97 | All eras, excl. Defence |
 
 These are numbers any government procurement office can compare against.
 
@@ -240,9 +249,10 @@ This is a data engineering issue, not an analytical insight. But it means any ve
 | 2 | `phase2-profiling.ipynb` | Profile key fields, follow threads, decide which patterns to investigate |
 | 3 | `phase3-analysis.ipynb` | Deep-dive into three insights with evidence, charts, and recommendations |
 
-**Tools used**: DuckDB (SQL queries), Polars (DataFrames), Plotly (interactive charts), Python
+**Tools used**: DuckDB (SQL queries), Polars (DataFrames), Plotly (interactive charts), Python, Data Wrangler (Microsoft VS Code extension for initial data profiling), Streamlit (interactive dashboard)
 
 **Key technical decisions**:
+- Used Data Wrangler for initial column profiling and quick visual inspection of data types, nulls, and distributions before writing queries
 - Loaded all columns as VARCHAR to avoid type-guessing issues, cast manually with TRY_CAST
 - Created a reusable SQL view excluding Defence and filtering to valid reporting periods
 - Analyzed three eras separately where field availability differs

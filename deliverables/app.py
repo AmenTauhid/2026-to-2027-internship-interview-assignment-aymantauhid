@@ -564,24 +564,32 @@ st.markdown("---")
 # Data Quality
 # ===================================================================
 
-with st.expander("Data Quality Notes", expanded=False):
+with st.expander("Data Quality, Limitations & Assumptions", expanded=False):
     dq1, dq2 = st.columns(2)
     with dq1:
         st.markdown("**Three reporting eras**")
         st.markdown(
-            "| Era | Mandatory fields |\n|---|---|\n"
-            "| Pre-2019 | Minimal - most fields 35-97% missing |\n"
-            "| 2019-2022 | Core fields (values, types, vendors) |\n"
-            "| Post-2022 | Nearly complete (solicitation, postal codes) |"
+            "| Era | Mandatory fields | Impact |\n|---|---|---|\n"
+            "| Pre-2019 | Minimal | 35-97% missing on process fields. Pre-2019 patterns may reflect incomplete data. |\n"
+            "| 2019-2022 | Core fields | Financial data reliable. Insights most trustworthy from here. |\n"
+            "| Post-2022 | Nearly all fields | Most complete data. Used where possible. |"
+        )
+        st.markdown("**Assumptions**")
+        st.markdown(
+            "- National Defence excluded (structurally different procurement)\n"
+            "- `contract_value` on amendments = cumulative total, not incremental\n"
+            "- Vendor names used as-is (no normalization) - concentration is conservatively estimated\n"
+            "- All values nominal CAD, not inflation-adjusted"
         )
     with dq2:
-        st.markdown("**Known issues**")
+        st.markdown("**Data issues encountered**")
         malformed = fetch_one("SELECT COUNT(*) FROM raw WHERE reporting_period IS NOT NULL AND reporting_period NOT LIKE '____-____-Q_' AND owner_org_title NOT LIKE 'National Defence%'")[0]
         st.markdown(
-            f"- **{malformed:,}** malformed reporting_period values (excluded)\n"
-            "- Vendor name inconsistency (same vendor, multiple spellings)\n"
-            "- `reporting_period` = when *reported*, not when *awarded*\n"
-            "- All values are nominal CAD (not inflation-adjusted)"
+            f"- **{malformed:,}** malformed `reporting_period` values excluded\n"
+            "- **Vendor name inconsistency**: same vendor under multiple spellings (10+ variants for some). True vendor concentration is higher than reported.\n"
+            "- **`reporting_period` = reporting date, not award date**: Q4 patterns could partly reflect reporting lag, but the pattern is too large and consistent to be explained by lag alone.\n"
+            "- **28% of rows have no `instrument_type`**: older records before the field was mandatory. Excluded from contract/amendment analysis.\n"
+            "- **Zero cast failures** on financial fields across all 1.26M rows."
         )
 
 with st.expander("What I'd investigate next", expanded=False):
