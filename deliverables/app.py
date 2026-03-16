@@ -390,9 +390,9 @@ col_f2, col_a2 = st.columns(2)
 with col_f2:
     st.markdown('<div class="finding-box">'
         "<b>The pattern</b><br>"
-        "In post-2019 data, ~25% of all rows are amendments. Services are the highest-risk "
-        "category: 31.8% rate, median 38% growth, 28.2% more than double. "
-        "The amendment rate is higher in Q4 (25.7% vs 22.2%), connecting the two insights."
+        "~25% of all rows are amendments post-2019 (where instrument_type is mandatory). "
+        "Services are the highest-risk category: 31.4% rate, median 38% growth. "
+        "The amendment rate is higher in Q4 (28.2% vs 23.3%), connecting the two insights."
         '</div>', unsafe_allow_html=True)
 with col_a2:
     st.markdown('<div class="action-box">'
@@ -563,18 +563,19 @@ st.markdown("---")
 with st.expander("Data Quality, Limitations & Assumptions", expanded=False):
     dq1, dq2 = st.columns(2)
     with dq1:
-        st.markdown("**Three reporting eras**")
+        st.markdown("**Data completeness**")
         st.markdown(
-            "| Era | Mandatory fields | Impact |\n|---|---|---|\n"
-            "| Pre-2019 | Minimal | 35-97% missing on process fields. Pre-2019 patterns may reflect incomplete data. |\n"
-            "| 2019-2022 | Core fields | Financial data reliable. Insights most trustworthy from here. |\n"
-            "| Post-2022 | Nearly all fields | Most complete data. Used where possible. |"
+            "| Scope | Reporting | Key limitation |\n|---|---|---|\n"
+            "| Pre-2019 | Voluntary | `reporting_period`, `commodity_type`, `instrument_type` not mandatory. Volume counts inflated. |\n"
+            "| Post-2019 | Mandatory | Core fields reliable. Primary evidence base. |\n"
+            "| All Years | Combined | Shows long-term trends. Volume influenced by pre-2019 bias. |"
         )
         st.markdown("**Assumptions**")
         st.markdown(
             "- National Defence excluded (structurally different procurement)\n"
             "- `contract_value` on amendments = cumulative total, not incremental\n"
             "- Vendor names used as-is (no normalization) - concentration is conservatively estimated\n"
+            "- `commodity_type` and `instrument_type` not mandatory before 2019 - commodity/transaction type breakdowns use post-2019 data\n"
             "- All values nominal CAD, not inflation-adjusted"
         )
     with dq2:
