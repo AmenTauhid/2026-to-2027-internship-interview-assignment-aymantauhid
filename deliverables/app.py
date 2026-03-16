@@ -252,10 +252,10 @@ col_f, col_a = st.columns(2)
 with col_f:
     st.markdown('<div class="finding-box">'
         "<b>The pattern</b><br>"
-        "Q4 sees 38% more procurement activity than the Q1-Q3 average. "
-        "Construction contracts are hit hardest - Q4 average values are 3.4x higher across all years, "
-        "rising to 5.8x in the post-2019 data. "
-        "Amendments are more concentrated in Q4 than new contracts."
+        "Q4 sees 20% more procurement activity in the post-2019 data (where reporting is mandatory). "
+        "The value impact is stronger: construction contracts average 5.84x higher in Q4 (post-2019), "
+        "up from 3.4x across all years. "
+        "Amendments are more concentrated in Q4 (32.7%) than new contracts (27.5%)."
         '</div>', unsafe_allow_html=True)
 with col_a:
     st.markdown('<div class="action-box">'
@@ -541,7 +541,7 @@ col1, col2, col3 = st.columns(3)
 with col1:
     st.markdown('<div class="insight-box">'
         "<b>Q4 pressure</b><br>"
-        "Budget cycles create year-end rush. 38% more contracts, with construction values 3.4x higher in Q4."
+        "Budget cycles create year-end rush. Construction values 3.4x higher in Q4 across all years, rising to 5.84x post-2019."
         '</div>', unsafe_allow_html=True)
 with col2:
     st.markdown('<div class="insight-box">'
