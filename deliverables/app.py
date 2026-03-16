@@ -91,12 +91,19 @@ with st.sidebar:
     st.markdown("---")
     st.subheader("Filters")
 
-    selected_era = st.selectbox("Reporting Era", ["All Years", "Post-2019"])
-    selected_commodity = st.selectbox("Commodity Type", ["All", "Services", "Goods", "Construction"])
+    selected_era = st.selectbox("Reporting Era", ["All Years", "Post-2019", "Pre-2019"],
+        help="Post-2019: mandatory reporting, most reliable. Pre-2019: voluntary, commodity_type and instrument_type not mandatory.")
+    selected_commodity = st.selectbox("Commodity Type", ["All", "Services", "Goods", "Construction"],
+        help="commodity_type not mandatory before 2019. Pre-2019 breakdown is incomplete.")
 
     st.markdown("---")
     st.markdown("**Scope**")
-    st.markdown("- National Defence excluded\n- Valid reporting periods only\n- All values in CAD")
+    st.markdown(
+        "- National Defence excluded\n"
+        "- Valid reporting periods only\n"
+        "- `commodity_type`, `instrument_type` mandatory post-2019 only\n"
+        "- All values in CAD (nominal)"
+    )
 
     st.markdown("---")
     st.caption("Built with DuckDB, Plotly, Streamlit")
@@ -108,13 +115,16 @@ def combined_filter():
     parts = []
     if selected_era == "Post-2019":
         parts.append("era IN ('2019-2022', 'Post-2022')")
+    elif selected_era == "Pre-2019":
+        parts.append("era = 'Pre-2019'")
     if selected_commodity != "All":
         parts.append(f"commodity_type = '{COMMODITY_MAP[selected_commodity]}'")
     return " AND ".join(parts) if parts else "1=1"
 
 f = combined_filter()
 
-era_label = "2019-2025" if selected_era == "Post-2019" else "2004-2025"
+ERA_LABELS = {"Post-2019": "2019-2025", "Pre-2019": "2004-2019", "All Years": "2004-2025"}
+era_label = ERA_LABELS.get(selected_era, "2004-2025")
 commodity_label = selected_commodity if selected_commodity != "All" else "All commodities"
 
 # ---------------------------------------------------------------------------
