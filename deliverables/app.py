@@ -148,11 +148,10 @@ commodity_label = selected_commodity if selected_commodity != "All" else "All co
 dept_label = selected_dept if selected_dept != "All Departments" else "All departments"
 filter_label = f"{commodity_label}, {dept_label}"
 
-# Lead with Post-2019 (strongest evidence), then All Years, then Pre-2019
 SCOPES = [
+    ("Pre-2019 (voluntary)",  f"{cf} AND era = 'Pre-2019'"),
     ("Post-2019 (mandatory)", f"{cf} AND era IN ('2019-2022', 'Post-2022')"),
     ("All Years",             f"{cf}"),
-    ("Pre-2019 (voluntary)",  f"{cf} AND era = 'Pre-2019'"),
 ]
 SCOPE_NAMES = [s[0] for s in SCOPES]
 
@@ -387,20 +386,17 @@ with tab2:
                 HAVING COUNT(*) > 1 AND COUNT(DISTINCT instrument_type) > 1
             )
             SELECT CASE
-                WHEN pct < 0 THEN 'Decreased'
-                WHEN pct = 0 THEN 'No change'
                 WHEN pct <= 50 THEN '1-50%'
                 WHEN pct <= 100 THEN '51-100%'
                 WHEN pct <= 500 THEN '101-500%'
                 ELSE '500%+'
             END AS bucket, COUNT(*) AS cnt,
             ROUND(COUNT(*)*100.0/SUM(COUNT(*)) OVER(), 1) AS share
-            FROM g WHERE pct IS NOT NULL
+            FROM g WHERE pct IS NOT NULL AND pct > 0
             GROUP BY bucket ORDER BY MIN(pct)
         """)
         if not growth.empty:
-            color_map = {"Decreased": GREEN, "No change": GRAY, "1-50%": BLUE,
-                         "51-100%": BLUE, "101-500%": ORANGE, "500%+": RED}
+            color_map = {"1-50%": BLUE, "51-100%": BLUE, "101-500%": ORANGE, "500%+": RED}
             fig_growth.add_trace(go.Bar(
                 y=growth["bucket"], x=growth["share"], orientation="h",
                 marker_color=[color_map.get(b, GRAY) for b in growth["bucket"]],
@@ -412,7 +408,7 @@ with tab2:
     fig_growth.update_yaxes(autorange="reversed")
     fig_growth.update_xaxes(title_text="% of amended contracts", row=1, col=2)
     st.plotly_chart(fig_growth, use_container_width=True)
-    st.caption("Each bar shows the share of amended contracts that grew by that amount. Orange/red = contracts that more than doubled.")
+    st.caption("Only contracts that grew in value. Orange/red = more than doubled - these effectively bypass the original competitive process.")
 
     # Row 3: Top grown contracts (all years)
     st.subheader("Largest contract growth (excl. Defence)")
