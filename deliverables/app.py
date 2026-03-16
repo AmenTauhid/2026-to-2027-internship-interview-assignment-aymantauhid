@@ -159,8 +159,13 @@ SCOPE_NAMES = [s[0] for s in SCOPES]
 # Header
 # ---------------------------------------------------------------------------
 
-st.title("What can we learn from federal contract data?")
-st.markdown("Three insights from 1.26 million rows of Government of Canada procurement data (excl. National Defence, valid reporting periods).")
+st.title("A self-reinforcing cycle in federal procurement")
+st.markdown(
+    "Year-end budget pressure leads to rushed contracts. "
+    "Those contracts grow through amendments, disproportionately benefiting a small group of vendors "
+    "who then receive even more spend. "
+    "**1.26M rows of Government of Canada procurement data (excl. National Defence) reveal the pattern.**"
+, unsafe_allow_html=True)
 
 # ---------------------------------------------------------------------------
 # Overview metrics
