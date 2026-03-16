@@ -627,16 +627,12 @@ with st.expander("Data Quality, Limitations & Assumptions", expanded=False):
             "- **Zero cast failures** on financial fields across all 1.26M rows."
         )
 
-with st.expander("What I'd investigate next", expanded=False):
+with st.expander("Next steps", expanded=False):
     st.markdown(
-        "1. **Do Q4 contracts get amended more than Q1-Q3 contracts?** We showed amendments "
-        "are more common *in* Q4, but are contracts *awarded* in Q4 more likely to be amended later?\n\n"
-        "2. **Which contract descriptions drive the Q4 volume surge?** Temporary help, "
-        "consulting, or other categories disproportionately rushed at year-end?\n\n"
-        "3. **How do amendment patterns differ by contract size?** Is growth concentrated in "
-        "high-value contracts?\n\n"
-        "4. **Vendor-level amendment patterns** - do certain vendors receive disproportionately "
-        "more amendments? Could indicate strategic low-bidding followed by scope expansion."
+        "1. **Do Q4-awarded contracts get amended more later?** - confirms the rushed-award hypothesis\n"
+        "2. **Vendor name normalization** - fuzzy matching would reveal true concentration\n"
+        "3. **Do top vendors bid low and grow through amendments?** - tests for strategic low-bidding\n"
+        "4. **Which contract descriptions drive Q4?** - sharpens the recommendation"
     )
 
 st.caption("Data: Government of Canada Proactive Disclosure of Contracts Over $10,000")
