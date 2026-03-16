@@ -627,12 +627,54 @@ with st.expander("Data Quality, Limitations & Assumptions", expanded=False):
             "- **Zero cast failures** on financial fields across all 1.26M rows."
         )
 
-with st.expander("Next steps", expanded=False):
-    st.markdown(
-        "1. **Do Q4-awarded contracts get amended more later?** - confirms the rushed-award hypothesis\n"
-        "2. **Vendor name normalization** - fuzzy matching would reveal true concentration\n"
-        "3. **Do top vendors bid low and grow through amendments?** - tests for strategic low-bidding\n"
-        "4. **Which contract descriptions drive Q4?** - sharpens the recommendation"
-    )
+st.markdown("---")
 
+# ===================================================================
+# Next Steps
+# ===================================================================
+
+st.header("What I'd investigate next")
+
+st.markdown(
+    "These three insights raise follow-up questions that would deepen the analysis "
+    "and sharpen the recommendations."
+)
+
+ns1, ns2 = st.columns(2)
+
+with ns1:
+    st.markdown('<div class="insight-box">'
+        "<b>1. Do Q4-awarded contracts get amended more later?</b><br><br>"
+        "We showed amendments are more common <i>in</i> Q4, but are contracts <i>awarded</i> in Q4 "
+        "more likely to be amended in subsequent quarters? If yes, it confirms that year-end "
+        "rush leads to poorly scoped contracts that need fixing later - a direct causal link "
+        "between Insight 1 and Insight 2."
+        '</div>', unsafe_allow_html=True)
+
+    st.markdown('<div class="insight-box">'
+        "<b>2. Vendor name normalization</b><br><br>"
+        "The same vendor appears under 10+ spellings (e.g., 'Canadian Corps of Commissionaires' "
+        "has 10,200+ rows across variants). Fuzzy matching would reveal the true vendor "
+        "concentration, which is likely significantly higher than the 55% reported for the top 50. "
+        "This is a data engineering prerequisite for any serious vendor analysis."
+        '</div>', unsafe_allow_html=True)
+
+with ns2:
+    st.markdown('<div class="insight-box">'
+        "<b>3. Do top vendors bid low and grow through amendments?</b><br><br>"
+        "If top vendors consistently win at lower original values but end up with higher final "
+        "values through amendments, it would suggest strategic low-bidding followed by scope "
+        "expansion. Comparing original vs. final values by vendor tier would test this hypothesis "
+        "and could inform bid evaluation criteria."
+        '</div>', unsafe_allow_html=True)
+
+    st.markdown('<div class="insight-box">'
+        "<b>4. Which contract descriptions drive the Q4 surge?</b><br><br>"
+        "Knowing whether the Q4 rush is driven by temporary help, consulting, construction, "
+        "or IT contracts would sharpen the recommendation. Different categories need different "
+        "interventions - multi-year budgeting for recurring needs, better scoping for consulting, "
+        "seasonal planning for construction."
+        '</div>', unsafe_allow_html=True)
+
+st.markdown("---")
 st.caption("Data: Government of Canada Proactive Disclosure of Contracts Over $10,000")
