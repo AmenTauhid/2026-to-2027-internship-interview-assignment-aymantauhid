@@ -258,14 +258,22 @@ if not yoy.empty:
     st.plotly_chart(fig_yoy, use_container_width=True)
 
 # Finding + actions
-col_f, col_a = st.columns(2)
+col_f, col_w, col_a = st.columns(3)
 with col_f:
     st.markdown('<div class="finding-box">'
         "<b>The pattern</b><br>"
-        "Q4 sees 20% more procurement activity in the post-2019 data (where reporting is mandatory). "
-        "The value impact is stronger: construction contracts average 5.84x higher in Q4 (post-2019), "
+        "Q4 sees 20% more procurement activity post-2019. "
+        "Construction contracts average 5.84x higher in Q4 (post-2019), "
         "up from 3.4x across all years. "
         "Amendments are more concentrated in Q4 (32.7%) than new contracts (27.5%)."
+        '</div>', unsafe_allow_html=True)
+with col_w:
+    st.markdown('<div class="insight-box">'
+        "<b>Why it matters</b><br>"
+        "Classic 'use it or lose it' budget behaviour. Departments rush to spend remaining budget before "
+        "March 31 or risk losing it next fiscal year. This pressure leads to less competition "
+        "(sole-source 41.3% vs 39.1%), oversized construction awards, and poorly scoped contracts "
+        "that set up the amendment growth in Insight 2."
         '</div>', unsafe_allow_html=True)
 with col_a:
     st.markdown('<div class="action-box">'
@@ -396,13 +404,21 @@ if not top_grown.empty:
         })
 
 # Finding + actions
-col_f2, col_a2 = st.columns(2)
+col_f2, col_w2, col_a2 = st.columns(3)
 with col_f2:
     st.markdown('<div class="finding-box">'
         "<b>The pattern</b><br>"
-        "~25% of all rows are amendments post-2019 (where instrument_type is mandatory). "
-        "Services are the highest-risk category: 31.4% rate, median 38% growth. "
-        "The amendment rate is higher in Q4 (28.2% vs 23.3%), connecting the two insights."
+        "~25% of all rows are amendments post-2019. "
+        "Services: 31.4% amendment rate, median 38% growth. "
+        "Amendments spike in Q4 (28.2% vs 23.3%) - year-end pressure drives scope expansion too."
+        '</div>', unsafe_allow_html=True)
+with col_w2:
+    st.markdown('<div class="insight-box">'
+        "<b>Why it matters</b><br>"
+        "A contract that grows from $18.6M to $1B through 16 amendments has effectively bypassed "
+        "the competitive process used for the original award. The Q4 connection makes it worse: "
+        "contracts rushed at year-end are more likely to need scope changes later, "
+        "creating a pipeline from budget pressure to uncompeted growth."
         '</div>', unsafe_allow_html=True)
 with col_a2:
     st.markdown('<div class="action-box">'
@@ -522,13 +538,21 @@ if not dept_dep.empty:
     })
 
 # Finding + actions
-col_f3, col_a3 = st.columns(2)
+col_f3, col_w3, col_a3 = st.columns(3)
 with col_f3:
     st.markdown('<div class="finding-box">'
         "<b>The pattern</b><br>"
-        "The top 50 vendors (out of 126,000+) hold 55% of all spend. "
-        "Their amendment rate is 38% - nearly double the 21% rate for smaller vendors. "
-        "18 departments have >30% of their spend with a single vendor."
+        "Top 50 vendors (out of 126,000+) hold 55% of all spend. "
+        "Their amendment rate is 38% - nearly double the 21% for others. "
+        "18 departments have >30% of spend with a single vendor."
+        '</div>', unsafe_allow_html=True)
+with col_w3:
+    st.markdown('<div class="insight-box">'
+        "<b>Why it matters</b><br>"
+        "Vendor lock-in reduces negotiating leverage and creates supply chain risk. "
+        "The biggest vendors also get amended the most, meaning they benefit from both "
+        "the initial award and the subsequent scope expansion. "
+        "This completes the cycle: Q4 rush, amendment growth, vendor concentration."
         '</div>', unsafe_allow_html=True)
 with col_a3:
     st.markdown('<div class="action-box">'
