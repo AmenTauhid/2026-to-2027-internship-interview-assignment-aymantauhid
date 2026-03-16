@@ -13,15 +13,9 @@
 
 ## Data quality, limitations, and assumptions
 
-### Three reporting eras
+### Why post-2019 data is used
 
-Mandatory field requirements expanded over time. This directly affects what comparisons are valid.
-
-| Era | What became mandatory | Impact on this analysis |
-|---|---|---|
-| Pre-2019 | Only `reference_number` | 35-97% missing on process fields. Pre-2019 quarterly and solicitation data is incomplete - patterns may reflect missing data, not actual behaviour. |
-| 2019-2022 | Core fields: `procurement_id`, `contract_value`, `commodity_type`, `instrument_type` | Core financial data reliable. Amendment and Q4 analysis most trustworthy from this era onward. |
-| Post-2022 | Process fields: `solicitation_procedure`, `vendor_postal_code`, `contracting_entity` | Most complete data. Where possible, post-2019 or post-2022 numbers are used. |
+Mandatory field requirements expanded over time. Pre-2019 data has 35-97% missing on key fields like `solicitation_procedure`, `commodity_type`, and `instrument_type`. Post-2019 data is reliable for core financial and process fields. **This analysis focuses on post-2019 data where possible**, and flags where older data is included.
 
 ### Data quality issues encountered
 
@@ -42,40 +36,27 @@ Mandatory field requirements expanded over time. This directly affects what comp
 
 ## Insight 1: Fiscal year-end (Q4) spending surge
 
-*Scope: excl. Defence, valid reporting periods only. Volume uses all transaction types. Value uses new contracts only (amendment values are cumulative totals, not new spending).*
+*Scope: excl. Defence, post-2019 data where reporting is mandatory. Volume uses all transaction types. Value uses new contracts only (amendment values are cumulative totals, not new spending).*
 
 ### The pattern
 
 Canada's fiscal year ends March 31. Q4 (January-March) shows a clear year-end surge:
-
-**Volume** (all transaction types - contracts, amendments, SOSAs):
-- **38% more procurement activity** in Q4 than the Q1-Q3 average (257,055 vs 185,671 avg)
-
-**Value** (new contracts only - the only clean measure of new spending):
+- **38% more procurement activity** in Q4 than the Q1-Q3 average
+- **34.8% of total contract value** lands in Q4 (expected: 25%)
 - Q4 average contract value is **$215K vs $177K** in Q1-Q3
-- **34.8% of total contract value** lands in Q4 (expected: 25% if evenly distributed)
+- The pattern is intensifying - the Q4 value multiplier reached **1.89x** in the most recent data (post-2022)
 
 ### Two channels
 
-The rush operates through both new awards and scope expansion on existing contracts (post-2019, where reporting is mandatory):
+The rush operates through both new awards and scope expansion on existing contracts:
 - **New contracts**: 27.5% fall in Q4 (expected: 25%)
 - **Amendments**: 32.7% fall in Q4 - even more concentrated than new awards
 
-The non-competitive (sole-source) rate is also higher in Q4: 41.3% vs 39.1% in Q1-Q3 (post-2019, contracts only).
+The non-competitive (sole-source) rate is also higher in Q4: **41.3% vs 39.1%** in Q1-Q3.
 
 ### Construction hit hardest
 
-In the post-2019 data, Q4 construction contracts average **5.84x** higher than other quarters ($1.56M vs $267K). Services show a modest 1.13x bump. Goods barely differ (1.02x).
-
-### Era comparison (contracts only)
-
-| Era | Q4 value multiplier | Notes |
-|---|---|---|
-| Pre-2019 | 0.91x | No Q4 value surge (but `reporting_period` was not mandatory - data is incomplete) |
-| 2019-2022 | 1.04x | Slight Q4 premium |
-| Post-2022 | 1.89x | Strong and intensifying |
-
-The Q4 pattern is modern and growing. The pre-2019 absence likely reflects incomplete data rather than different behaviour, since `reporting_period` was not mandatory before 2019.
+Q4 construction contracts average **5.84x** higher than other quarters ($1.56M vs $267K). Services show a modest 1.13x bump. Goods barely differ (1.02x).
 
 ### Recommendations
 
@@ -93,19 +74,18 @@ The Q4 pattern is modern and growing. The pre-2019 absence likely reflects incom
 
 ### The pattern
 
-- **1 in 4 transaction rows is an amendment** (up from 1 in 6 pre-2019)
-- Overall amendment rate: 23.3%. Post-2019: ~25%
+- **1 in 4 transaction rows is now an amendment** (~25% rate)
 - Of amended contracts: **40% more than double in value**, 10.5% grow by **500%+**
 
 ### By commodity type
 
-| Commodity | Amendment rate (post-2022) | Median growth | % that more than double |
+| Commodity | Amendment rate | Median growth | % that more than double |
 |---|---|---|---|
-| Services | 31.8% | 38% | 28.2% |
-| Construction | 28.5% | 16% | 8.2% |
-| Goods | 8.5% | 12% | 17.3% |
+| Services | 31.4% | 38% | 28.2% |
+| Construction | 30.4% | 16% | 8.2% |
+| Goods | 9.0% | 12% | 17.3% |
 
-Services are the highest-risk category - they're amended most often, grow the most, and the rate is increasing (28.9% pre-2019 to 31.7% post-2022). Construction has a similar amendment rate but amendments tend to be smaller. Construction's rate actually *decreased* over time (32.6% to 28.5%). Goods are rarely amended.
+Services are the highest-risk category - amended most often and with the largest growth. Construction has a similar amendment rate but smaller amendments. Goods are rarely amended.
 
 ### Extreme examples (excl. Defence)
 
@@ -196,20 +176,19 @@ The cycle works like this: year-end budget pressure creates rushed awards. Those
 
 ### Federal benchmarks
 
-| Metric | Benchmark | Scope |
-|---|---|---|
-| Q4 volume surge (all transaction types) | +38% vs Q1-Q3 average | All types, all eras |
-| Q4 share of total contract value | 34.8% (expected: 25%) | Contracts only, all eras |
-| Q4 avg contract value vs Q1-Q3 | $215K vs $177K | Contracts only, all eras |
-| Q4 construction value multiplier | 5.84x | Contracts only, post-2019 |
-| Q4 sole-source rate vs Q1-Q3 | 41.3% vs 39.1% | Contracts only, post-2019 |
-| Q4 share of new contracts | 27.5% | Post-2019 |
-| Q4 share of amendments | 32.7% | Post-2019 |
-| Amendment rate | ~25% | Post-2019 |
-| Services amendment rate | 31.4% | Post-2019 |
-| Top 50 vendor share of total spend | 55% | All eras, excl. Defence |
-| Top 50 vendor amendment rate | 37.7% (vs 20.5% for others) | All eras, excl. Defence |
-| Departments with >30% single-vendor dependency | 18 out of 97 | All eras, excl. Defence |
+| Metric | Benchmark |
+|---|---|
+| Q4 volume surge | +38% vs Q1-Q3 average |
+| Q4 share of contract value | 34.8% (expected: 25%) |
+| Q4 avg contract value vs Q1-Q3 | $215K vs $177K |
+| Q4 construction value multiplier | 5.84x |
+| Q4 sole-source rate vs Q1-Q3 | 41.3% vs 39.1% |
+| Q4 share of amendments | 32.7% (vs 27.5% for new contracts) |
+| Amendment rate | ~25% |
+| Services amendment rate | 31.4% |
+| Top 50 vendor share of spend | 55% |
+| Top 50 vendor amendment rate | 37.7% (vs 20.5% for others) |
+| Departments with >30% single-vendor dependency | 18 out of 97 |
 
 These are numbers any government procurement office can compare against.
 
