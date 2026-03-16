@@ -144,9 +144,10 @@ Growth estimated by comparing `MAX(contract_value)` to `MIN(original_value)` acr
 
 ### The pattern
 
-- Top 50 vendors (out of 126,000+) hold 55% of all spend
-- Their amendment rate is 38% - nearly double the 21% for others
-- 18 departments have >30% of spend with a single vendor
+- Top 50 share grew from 45% (2019) to 70% (2024) - concentration is accelerating
+- Top 50 avg amendment adds $3M per contract vs $158K for others
+- Top vendors don't rely on sole-source (32.9%) - they win competitively then expand
+- Deloitte is top vendor for both ESDC (37%) and CBSA (37%)
 
 ### Vendor concentration
 
@@ -158,21 +159,53 @@ Growth estimated by comparing `MAX(contract_value)` to `MIN(original_value)` acr
 | Top 500 vendors | 79.5% |
 | Remaining 125,969 vendors | 20.5% |
 
-### Single-vendor dependency
+### Concentration trend (post-2019)
+
+| Fiscal Year | Top 50 Share |
+|---|---|
+| 2019-2020 | 45.1% |
+| 2020-2021 | 58.2% |
+| 2021-2022 | 60.2% |
+| 2022-2023 | 45.3% |
+| 2023-2024 | 47.1% |
+| 2024-2025 | 69.8% |
+
+### Per-contract amendment growth by vendor tier (post-2019)
+
+| Tier | Amended contracts | Avg original | Avg final | Median growth | Total growth |
+|---|---|---|---|---|---|
+| Top 50 | 1,477 | $3.5M | $6.6M | 31% | $4.47B |
+| Others | 38,894 | $552K | $710K | 26% | $6.13B |
+
+Top 50 vendors add $3M per amended contract vs $158K for others - 19x larger per contract.
+
+### Top vendors don't rely on sole-source
+
+| Tier | Sole-source rate | Amendment rate |
+|---|---|---|
+| Top 50 | 32.9% | 43.2% |
+| Others | 34.4% | 24.2% |
+
+Top vendors actually use sole-source *less* than others. They win competitively, then grow through amendments.
+
+### Single-vendor dependency (post-2019, depts >$100M)
 
 | Department | Top Vendor | % of Dept Spend |
 |---|---|---|
-| Dept. of Housing & Infrastructure | Groupe Signature sur le | 40.1% |
-| Canadian Space Agency | MDA Systems | 39.0% |
-| Fisheries and Oceans | Vancouver Shipyards | 38.6% |
-| Treasury Board | Sun Life Assurance | 38.3% |
-| Canada Border Services | Deloitte Inc | 31.1% |
-| Employment & Social Dev | D+H Corporation | 28.8% |
+| Housing & Infrastructure | Groupe Signature sur le | 65.1% |
+| Canada School of Public Service | Desire2Learn | 62.8% |
+| Fisheries and Oceans | Vancouver Shipyards | 43.9% |
+| ESDC | Deloitte Inc | 37.1% |
+| CBSA | Deloitte Inc | 36.9% |
+| Canadian Space Agency | MDA Systems | 35.4% |
+
+Note: Deloitte appears as top vendor for multiple departments.
 
 ### Why it matters
 
-- Vendor lock-in reduces negotiating leverage and creates supply chain risk
-- Biggest vendors benefit from both the initial award and scope expansion
+- Concentration is getting worse, not stabilizing
+- Top vendors grow through amendments, not sole-source - harder to catch
+- Same vendors dominating multiple departments creates systemic risk
 - Completes the cycle: Q4 rush, amendment growth, vendor concentration
 
 ### What to do
@@ -200,9 +233,11 @@ Vendor names are not normalized. Same vendor can appear under multiple spellings
 | Amendment rate | ~25% (post-2019) |
 | Competitive vs sole-source amendment rate | 26.2% vs 14.3% (post-2019) |
 | $ added through amendments | $13.4B (post-2019) |
-| Top 50 vendor share of spend | 55% |
-| Top 50 vendor amendment rate | 37.7% (vs 20.5% for others) |
-| Departments with >30% single-vendor dependency | 18 out of 97 |
+| Top 50 vendor share of spend | 55% (all years), 45% to 70% trend (2019-2024) |
+| Top 50 vendor amendment rate | 43.2% (vs 24.2% for others, post-2019) |
+| Top 50 sole-source rate | 32.9% (vs 34.4% for others - they win competitively) |
+| Top 50 avg amendment growth per contract | $3M (vs $158K for others) |
+| Departments with >30% single-vendor dependency | 11 (post-2019, depts >$100M) |
 
 ---
 

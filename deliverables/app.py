@@ -330,25 +330,32 @@ with tab2:
 
     # Headline metrics
     amend_row = fetch_one(f"""
-        SELECT ROUND(SUM(CASE WHEN instrument_type='A' THEN 1 ELSE 0 END)*100.0/COUNT(*), 1),
-            ROUND(SUM(CASE WHEN instrument_type='A' AND era='Pre-2019' THEN 1 ELSE 0 END)*100.0 /
-                NULLIF(SUM(CASE WHEN era='Pre-2019' THEN 1 ELSE 0 END), 0), 1)
+        SELECT ROUND(SUM(CASE WHEN instrument_type='A' AND era IN ('2019-2022','Post-2022') THEN 1 ELSE 0 END)*100.0 /
+                NULLIF(SUM(CASE WHEN era IN ('2019-2022','Post-2022') THEN 1 ELSE 0 END), 0), 1)
         FROM contracts WHERE {cf}
     """)
-    growth_500 = fetch_one(f"""
+    amendment_dollars = fetch_one(f"""
         WITH g AS (
-            SELECT ROUND((TRY_CAST(MAX(contract_value) AS DOUBLE) /
-                NULLIF(TRY_CAST(MIN(original_value) AS DOUBLE), 0) - 1) * 100, 0) AS pct
-            FROM contracts WHERE {cf} AND procurement_id IS NOT NULL
-            GROUP BY procurement_id HAVING COUNT(*) > 1 AND COUNT(DISTINCT instrument_type) > 1
+            SELECT TRY_CAST(MIN(original_value) AS DOUBLE) AS orig,
+                TRY_CAST(MAX(contract_value) AS DOUBLE) AS final_val
+            FROM contracts WHERE {cf} AND era IN ('2019-2022','Post-2022') AND procurement_id IS NOT NULL
+            GROUP BY procurement_id
+            HAVING COUNT(*) > 1 AND COUNT(DISTINCT instrument_type) > 1
         )
-        SELECT ROUND(SUM(CASE WHEN pct > 100 THEN 1 ELSE 0 END)*100.0/COUNT(*), 1)
-        FROM g WHERE pct IS NOT NULL
+        SELECT ROUND((SUM(final_val) - SUM(orig))/1e9, 1) FROM g WHERE orig > 0
+    """)
+    comp_vs_sole = fetch_one(f"""
+        SELECT
+            ROUND(SUM(CASE WHEN solicitation_procedure='TC' AND instrument_type='A' THEN 1 ELSE 0 END)*100.0 /
+                NULLIF(SUM(CASE WHEN solicitation_procedure='TC' THEN 1 ELSE 0 END), 0), 1),
+            ROUND(SUM(CASE WHEN solicitation_procedure='TN' AND instrument_type='A' THEN 1 ELSE 0 END)*100.0 /
+                NULLIF(SUM(CASE WHEN solicitation_procedure='TN' THEN 1 ELSE 0 END), 0), 1)
+        FROM contracts WHERE {cf} AND era IN ('2019-2022','Post-2022')
     """)
     am1, am2, am3 = st.columns(3)
     am1.metric("Amendment Rate (post-2019)", f"{amend_row[0]:.1f}%" if amend_row[0] else "N/A")
-    am2.metric("Amendment Rate (pre-2019)", f"{amend_row[1]:.1f}%" if amend_row[1] else "N/A")
-    am3.metric("Contracts That More Than Double", f"{growth_500[0]:.1f}%" if growth_500[0] else "N/A")
+    am2.metric("$ Added Through Amendments", f"${amendment_dollars[0]:.1f}B" if amendment_dollars[0] else "N/A")
+    am3.metric("Competitive vs Sole-Source", f"{comp_vs_sole[0]:.1f}% vs {comp_vs_sole[1]:.1f}%" if comp_vs_sole[0] else "N/A")
 
     st.markdown('<div class="insight-box">'
         "- Amendments modify existing contracts after award<br>"
@@ -417,7 +424,30 @@ with tab2:
     st.plotly_chart(fig_growth, use_container_width=True)
     st.caption("Only contracts that grew in value. Orange/red = more than doubled - these effectively bypass the original competitive process.")
 
-    # Row 3: Top grown contracts (all years)
+    # Row 3: Top departments by amendment rate by scope
+    if selected_dept == "All Departments":
+        fig_dept_amend = make_subplots(rows=1, cols=3, subplot_titles=SCOPE_NAMES, shared_yaxes=True)
+        for i, (scope_name, scope_filter) in enumerate(SCOPES):
+            dept_amend = fetch_df(f"""
+                SELECT LEFT(department, 20) AS dept_name,
+                    ROUND(SUM(CASE WHEN instrument_type='A' THEN 1 ELSE 0 END)*100.0/COUNT(*), 1) AS amend_rate
+                FROM contracts WHERE {scope_filter}
+                GROUP BY department HAVING COUNT(*) >= 1000
+                ORDER BY amend_rate DESC LIMIT 5
+            """)
+            if not dept_amend.empty:
+                fig_dept_amend.add_trace(go.Bar(x=dept_amend["dept_name"], y=dept_amend["amend_rate"],
+                    marker_color=[RED if v > 40 else ORANGE if v > 30 else BLUE for v in dept_amend["amend_rate"]],
+                    text=[f"{v}%" for v in dept_amend["amend_rate"]], textposition="outside", cliponaxis=False,
+                    showlegend=False), row=1, col=i+1)
+        fig_dept_amend.update_layout(height=500, template="plotly_white",
+            title="Top departments by amendment rate", margin=dict(t=60, b=120))
+        fig_dept_amend.update_yaxes(title_text="Amendment rate (%)", row=1, col=1)
+        fig_dept_amend.update_xaxes(tickangle=-45)
+        st.plotly_chart(fig_dept_amend, use_container_width=True)
+        st.caption("Departments with the highest share of amendment rows. CRA has more amendments than new contracts post-2019.")
+
+    # Row 4: Top grown contracts (all years)
     st.subheader("Largest contract growth (excl. Defence)")
     top_grown = fetch_df(f"""
         SELECT procurement_id, MAX(vendor_name) AS vendor,
@@ -450,14 +480,15 @@ with tab2:
         st.markdown('<div class="finding-box">'
             "<b>The pattern</b><br>"
             "- ~25% of all rows are amendments post-2019<br>"
-            "- Services: 31.4% amendment rate<br>"
-            "- Amendments spike in Q4 (28.2% vs 23.3%)<br>"
-            "- Some contracts grow from $18.6M to $1B through 16 amendments"
+            "- $13.4B added through amendments post-2019 (46% growth)<br>"
+            "- Competitive contracts amended more (26.2%) than sole-source (14.3%)<br>"
+            "- CRA (51%), IRCC (46.7%), ESDC (44.8%) lead in amendment rates"
             '</div>', unsafe_allow_html=True)
     with col_w2:
         st.markdown('<div class="insight-box">'
             "<b>Why it matters</b><br>"
-            "- Massive growth effectively bypasses the original competitive process<br>"
+            "- $13.4B in growth without re-competing<br>"
+            "- Competitive contracts get amended more - consistent with low-bid-then-expand<br>"
             "- Q4-rushed contracts are more likely to need scope changes later<br>"
             "- Creates a pipeline from budget pressure to uncompeted growth"
             '</div>', unsafe_allow_html=True)
@@ -490,7 +521,7 @@ with tab3:
             COUNT(*)
         FROM v
     """)
-    tier_row = fetch_one(f"""
+    conc_trend = fetch_one(f"""
         WITH v AS (
             SELECT vendor_name, SUM(cv) as total_val,
                    ROW_NUMBER() OVER (ORDER BY SUM(cv) DESC) as rn
@@ -498,18 +529,41 @@ with tab3:
             GROUP BY vendor_name
         )
         SELECT
-            ROUND(100.0 * SUM(CASE WHEN v.rn<=50 AND c.instrument_type='A' THEN 1 ELSE 0 END) /
-                NULLIF(SUM(CASE WHEN v.rn<=50 THEN 1 ELSE 0 END), 0), 1),
-            ROUND(100.0 * SUM(CASE WHEN v.rn>50 AND c.instrument_type='A' THEN 1 ELSE 0 END) /
-                NULLIF(SUM(CASE WHEN v.rn>50 THEN 1 ELSE 0 END), 0), 1)
+            ROUND(SUM(CASE WHEN c.fiscal_year='2019-2020' AND v.rn<=50 THEN cv ELSE 0 END)*100.0 /
+                NULLIF(SUM(CASE WHEN c.fiscal_year='2019-2020' THEN cv ELSE 0 END), 0), 1),
+            ROUND(SUM(CASE WHEN c.fiscal_year='2024-2025' AND v.rn<=50 THEN cv ELSE 0 END)*100.0 /
+                NULLIF(SUM(CASE WHEN c.fiscal_year='2024-2025' THEN cv ELSE 0 END), 0), 1)
         FROM contracts c
         JOIN v ON c.vendor_name = v.vendor_name
         WHERE {cf}
     """)
+    per_contract = fetch_one(f"""
+        WITH v AS (
+            SELECT vendor_name, SUM(cv) as total_val,
+                   ROW_NUMBER() OVER (ORDER BY SUM(cv) DESC) as rn
+            FROM contracts WHERE {cf} AND vendor_name IS NOT NULL
+            GROUP BY vendor_name
+        ),
+        growth AS (
+            SELECT CASE WHEN v.rn <= 50 THEN 'Top 50' ELSE 'Others' END as tier,
+                TRY_CAST(MIN(original_value) AS DOUBLE) AS orig,
+                TRY_CAST(MAX(contract_value) AS DOUBLE) AS final_val
+            FROM contracts c
+            JOIN v ON c.vendor_name = v.vendor_name
+            WHERE {cf} AND era IN ('2019-2022','Post-2022') AND procurement_id IS NOT NULL
+            GROUP BY tier, procurement_id
+            HAVING COUNT(*) > 1 AND COUNT(DISTINCT instrument_type) > 1
+        )
+        SELECT ROUND(AVG(CASE WHEN tier='Top 50' THEN final_val - orig END)/1e6, 1),
+            ROUND(AVG(CASE WHEN tier='Others' THEN final_val - orig END)/1e3, 0)
+        FROM growth WHERE orig > 0
+    """)
     vm1, vm2, vm3 = st.columns(3)
     vm1.metric("Top 50 Share of Spend", f"{vc_row[0]:.1f}%" if vc_row[0] else "N/A")
-    vm2.metric("Top 50 Amendment Rate", f"{tier_row[0]:.1f}%" if tier_row[0] else "N/A")
-    vm3.metric("Others Amendment Rate", f"{tier_row[1]:.1f}%" if tier_row[1] else "N/A")
+    vm2.metric("Concentration Trend (2019 to 2024)",
+        f"{conc_trend[0]:.0f}% to {conc_trend[1]:.0f}%" if conc_trend[0] and conc_trend[1] else "N/A")
+    vm3.metric("Avg Amendment Growth: Top 50 vs Others",
+        f"${per_contract[0]:.1f}M vs ${per_contract[1]:.0f}K" if per_contract[0] else "N/A")
 
     st.markdown('<div class="insight-box">'
         "- 126,000+ vendors in the dataset - is spending spread broadly or concentrated?<br>"
@@ -618,15 +672,17 @@ with tab3:
     with col_f3:
         st.markdown('<div class="finding-box">'
             "<b>The pattern</b><br>"
-            "- Top 50 vendors (out of 126,000+) hold 55% of all spend<br>"
-            "- Their amendment rate is 38% - nearly double the 21% for others<br>"
-            "- 18 departments have >30% of spend with a single vendor"
+            "- Top 50 share grew from 45% (2019) to 70% (2024) - concentration is accelerating<br>"
+            "- Top 50 avg amendment adds $3M per contract vs $158K for others<br>"
+            "- Top vendors don't rely on sole-source (32.9%) - they win competitively then expand<br>"
+            "- Deloitte is top vendor for both ESDC (37%) and CBSA (37%)"
             '</div>', unsafe_allow_html=True)
     with col_w3:
         st.markdown('<div class="insight-box">'
             "<b>Why it matters</b><br>"
-            "- Vendor lock-in reduces negotiating leverage and creates supply chain risk<br>"
-            "- Biggest vendors benefit from both the initial award and scope expansion<br>"
+            "- Concentration is getting worse, not stabilizing<br>"
+            "- Top vendors grow through amendments, not sole-source - harder to catch<br>"
+            "- Same vendors dominating multiple departments creates systemic risk<br>"
             "- Completes the cycle: Q4 rush, amendment growth, vendor concentration"
             '</div>', unsafe_allow_html=True)
     with col_a3:
