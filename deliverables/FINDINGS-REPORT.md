@@ -13,9 +13,9 @@
 
 ## Data quality, limitations, and assumptions
 
-### Why post-2019 data is used
+### Data completeness
 
-Mandatory field requirements expanded over time. Pre-2019 data has 35-97% missing on key fields like `solicitation_procedure`, `commodity_type`, and `instrument_type`. Post-2019 data is reliable for core financial and process fields. **This analysis focuses on post-2019 data where possible**, and flags where older data is included.
+This analysis uses all 21 years of data (2004-2025) as evidence. Pre-2019 data has gaps in process fields (`solicitation_procedure`, `commodity_type` are 35-97% missing) but core fields like `contract_value`, `reporting_period`, `vendor_name`, and `instrument_type` are mostly populated. Where analysis requires process fields (e.g., sole-source rates, commodity breakdowns), only post-2019 data is used and this is noted.
 
 ### Data quality issues encountered
 
@@ -36,15 +36,16 @@ Mandatory field requirements expanded over time. Pre-2019 data has 35-97% missin
 
 ## Insight 1: Fiscal year-end (Q4) spending surge
 
-*Scope: excl. Defence, post-2019 data where reporting is mandatory. Volume uses all transaction types. Value uses new contracts only (amendment values are cumulative totals, not new spending).*
+*Volume uses all transaction types. Value uses new contracts only (amendment values are cumulative totals, not new spending).*
 
 ### The pattern
 
-Canada's fiscal year ends March 31. Q4 (January-March) shows a clear year-end surge:
+Canada's fiscal year ends March 31. Q4 (January-March) shows a clear year-end surge across all 21 years of data:
 - **38% more procurement activity** in Q4 than the Q1-Q3 average
 - **34.8% of total contract value** lands in Q4 (expected: 25%)
 - Q4 average contract value is **$215K vs $177K** in Q1-Q3
-- The pattern is intensifying - the Q4 value multiplier reached **1.89x** in the most recent data (post-2022)
+
+The pattern is intensifying in recent data - the Q4 value multiplier reached **1.89x** post-2022, up from 1.04x in 2019-2022.
 
 ### Two channels
 
@@ -52,11 +53,11 @@ The rush operates through both new awards and scope expansion on existing contra
 - **New contracts**: 27.5% fall in Q4 (expected: 25%)
 - **Amendments**: 32.7% fall in Q4 - even more concentrated than new awards
 
-The non-competitive (sole-source) rate is also higher in Q4: **41.3% vs 39.1%** in Q1-Q3.
+The non-competitive (sole-source) rate is also higher in Q4: **41.3% vs 39.1%** in Q1-Q3 (post-2019, where solicitation procedure data is available).
 
 ### Construction hit hardest
 
-Q4 construction contracts average **5.84x** higher than other quarters ($1.56M vs $267K). Services show a modest 1.13x bump. Goods barely differ (1.02x).
+Across all years, Q4 construction contracts average **3.4x** higher than other quarters ($1.07M vs $314K). In the post-2019 data, this rises to **5.84x** ($1.56M vs $267K). Services and goods show modest differences (1.05x and 1.02x).
 
 ### Recommendations
 

@@ -91,7 +91,7 @@ with st.sidebar:
     st.markdown("---")
     st.subheader("Filters")
 
-    selected_era = st.selectbox("Reporting Era", ["Post-2019", "All Years"])
+    selected_era = st.selectbox("Reporting Era", ["All Years", "Post-2019"])
     selected_commodity = st.selectbox("Commodity Type", ["All", "Services", "Goods", "Construction"])
 
     st.markdown("---")
@@ -122,7 +122,7 @@ commodity_label = selected_commodity if selected_commodity != "All" else "All co
 # ---------------------------------------------------------------------------
 
 st.title("What can we learn from federal contract data?")
-st.markdown("Three insights from 1.26 million rows of Government of Canada procurement data.")
+st.markdown("Three insights from 1.26 million rows of Government of Canada procurement data (excl. National Defence, valid reporting periods).")
 
 # ---------------------------------------------------------------------------
 # Overview metrics
@@ -252,11 +252,10 @@ col_f, col_a = st.columns(2)
 with col_f:
     st.markdown('<div class="finding-box">'
         "<b>The pattern</b><br>"
-        "Q4 sees 38% more contracts than the Q1-Q3 average. In the post-2019 data "
-        "(where reporting is mandatory), new construction contracts are hit hardest - "
-        "Q4 average values are 5.8x higher, with 63% of construction value landing in Q4. "
-        "Services and goods show modest differences. Amendments are more concentrated "
-        "in Q4 (34.7%) than new contracts (30.6%)."
+        "Q4 sees 38% more procurement activity than the Q1-Q3 average. "
+        "Construction contracts are hit hardest - Q4 average values are 3.4x higher across all years, "
+        "rising to 5.8x in the post-2019 data. "
+        "Amendments are more concentrated in Q4 than new contracts."
         '</div>', unsafe_allow_html=True)
 with col_a:
     st.markdown('<div class="action-box">'
@@ -542,7 +541,7 @@ col1, col2, col3 = st.columns(3)
 with col1:
     st.markdown('<div class="insight-box">'
         "<b>Q4 pressure</b><br>"
-        "Budget cycles create year-end rush. 38% more contracts, with construction values 5.8x higher in Q4 (post-2019)."
+        "Budget cycles create year-end rush. 38% more contracts, with construction values 3.4x higher in Q4."
         '</div>', unsafe_allow_html=True)
 with col2:
     st.markdown('<div class="insight-box">'
