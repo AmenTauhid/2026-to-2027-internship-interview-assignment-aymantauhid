@@ -97,28 +97,16 @@ with st.sidebar:
         help="commodity_type not mandatory before 2019. Pre-2019 breakdown is incomplete.")
 
     st.markdown("---")
-    st.markdown("**Scope & Exclusions**")
+    st.markdown("**Scope**")
     st.markdown(
-        "- **National Defence excluded** - structurally different procurement "
-        "(shipbuilding, fighter jets) would skew all civilian patterns\n"
-        "- **~2,600 malformed reporting periods excluded** - values like 'C', 'Q1', '2108-2019'\n"
-        "- **`reporting_period`** = when contract was *reported*, not *awarded*"
-    )
-
-    st.markdown("**Data Limitations**")
-    st.markdown(
-        "- **Pre-2019**: `reporting_period`, `commodity_type`, `instrument_type` were voluntary. "
-        "Volume counts are inflated by selective disclosure. Process field breakdowns are incomplete.\n"
-        "- **Post-2019**: All core fields mandatory. Most reliable data.\n"
-        "- **Vendor names not normalized** - same vendor appears under multiple spellings. "
-        "Concentration metrics are conservative estimates."
-    )
-
-    st.markdown("**Assumptions**")
-    st.markdown(
-        "- `contract_value` on amendment rows = cumulative running total, not incremental amount\n"
-        "- All values in nominal CAD (not inflation-adjusted)\n"
-        "- SOSAs with $0 value are valid (frameworks, not spending)"
+        "- National Defence excluded\n"
+        "- ~2,600 malformed reporting periods excluded\n"
+        "- `reporting_period` = date *reported*, not *awarded*\n"
+        "- Pre-2019: voluntary reporting, key fields incomplete\n"
+        "- Post-2019: mandatory reporting, most reliable\n"
+        "- Vendor names not normalized (concentration is conservative)\n"
+        "- Amendment values are cumulative totals, not incremental\n"
+        "- All values nominal CAD"
     )
 
     st.markdown("---")
