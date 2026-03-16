@@ -91,7 +91,7 @@ with st.sidebar:
     st.markdown("---")
     st.subheader("Filters")
 
-    selected_era = st.selectbox("Reporting Era", ["Post-2019", "All", "Pre-2019", "2019-2022", "Post-2022"])
+    selected_era = st.selectbox("Reporting Era", ["Post-2019", "All Years"])
     selected_commodity = st.selectbox("Commodity Type", ["All", "Services", "Goods", "Construction"])
 
     st.markdown("---")
@@ -108,19 +108,14 @@ def combined_filter():
     parts = []
     if selected_era == "Post-2019":
         parts.append("era IN ('2019-2022', 'Post-2022')")
-    elif selected_era != "All":
-        parts.append(f"era = '{selected_era}'")
     if selected_commodity != "All":
         parts.append(f"commodity_type = '{COMMODITY_MAP[selected_commodity]}'")
     return " AND ".join(parts) if parts else "1=1"
 
 f = combined_filter()
 
-# Dynamic label for current filter scope
-ERA_RANGES = {"Pre-2019": "2004-2019", "Post-2019": "2019-2025", "2019-2022": "2019-2022", "Post-2022": "2022-2025"}
-era_label = ERA_RANGES.get(selected_era, "2004-2025")
+era_label = "2019-2025" if selected_era == "Post-2019" else "2004-2025"
 commodity_label = selected_commodity if selected_commodity != "All" else "All commodities"
-scope_label = f"{era_label}, {commodity_label}"
 
 # ---------------------------------------------------------------------------
 # Header
