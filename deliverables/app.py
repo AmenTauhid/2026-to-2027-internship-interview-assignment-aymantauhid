@@ -14,11 +14,11 @@ load_dotenv(override=True)
 CSV_PATH = os.getenv("LOCAL_DATASET_PATH", "data/contracts.csv")
 
 # Color palette
-BLUE = "#4878A8"
-RED = "#D04040"
-ORANGE = "#E8A040"
-GREEN = "#6BAF6B"
-GRAY = "#888888"
+BLUE = "#2A5F8F"
+RED = "#B82020"
+ORANGE = "#D48A20"
+GREEN = "#3D8B3D"
+GRAY = "#666666"
 
 st.set_page_config(page_title="Contract Analysis", layout="wide", initial_sidebar_state="expanded")
 
@@ -41,6 +41,7 @@ st.markdown("""
         padding: 1rem 1.2rem; margin: 1rem 0; border-radius: 0 6px 6px 0;
     }
     div[data-testid="stHorizontalBlock"] > div {padding: 0 0.3rem;}
+    [data-testid="stCaptionContainer"] {color: #000000 !important;}
 </style>
 """, unsafe_allow_html=True)
 
@@ -237,37 +238,50 @@ with tab1:
             GROUP BY quarter ORDER BY quarter
         """)
         if not qtr.empty:
-            colors = [BLUE if q != "Q4" else RED for q in qtr["quarter"]]
+            colors = [BLUE, BLUE, BLUE, RED]
             fig_avg.add_trace(go.Bar(x=qtr["quarter"], y=qtr["avg_val"], marker_color=colors,
                 text=[f"${v/1000:.0f}K" for v in qtr["avg_val"]], textposition="outside", cliponaxis=False,
+                textfont=dict(size=13, color="black"),
                 hovertemplate="<b>%{x}</b><br>Avg: $%{y:,.0f}<extra></extra>", showlegend=False), row=1, col=i+1)
-    fig_avg.update_layout(height=420, template="plotly_white",
-        title="Q4 avg contract value - new contracts only", margin=dict(t=60, b=10))
+    fig_avg.update_layout(height=420, template="plotly_white", font=dict(size=13, color="black"),
+        title="Q4 contracts are worth more - especially post-2019", margin=dict(t=60, b=10))
     fig_avg.update_yaxes(rangemode="tozero", title_text="Avg contract value ($)", row=1, col=1)
     st.plotly_chart(fig_avg, use_container_width=True)
-    st.caption("Q4 (red) shows a clear value premium post-2019. Pre-2019 data is voluntary and less reliable.")
+    st.caption("Pre-2019 shows no Q4 premium (voluntary reporting skews data). Post-2019 reveals the real pattern: Q4 contracts are 1.45x more expensive.")
 
-    # Row 2: Q4 share by transaction type by scope
-    fig_share = make_subplots(rows=1, cols=3, subplot_titles=SCOPE_NAMES, shared_yaxes=True)
+    # Row 2: Q4 share by transaction type (horizontal bars)
+    fig_share = make_subplots(rows=1, cols=3, subplot_titles=SCOPE_NAMES, shared_xaxes=True)
+    cat_colors = {"Amendments": "#D48A20", "New Contracts": "#3D8B3D", "Standing Offers": "#2A5F8F"}
+    cat_order = ["New Contracts", "Amendments", "Standing Offers"]
     for i, (scope_name, scope_filter) in enumerate(SCOPES):
         inst = fetch_df(f"""
             SELECT CASE instrument_type WHEN 'C' THEN 'New Contracts' WHEN 'A' THEN 'Amendments'
                 WHEN 'SOSA' THEN 'Standing Offers' END AS type,
                 ROUND(SUM(CASE WHEN quarter='Q4' THEN 1 ELSE 0 END)*100.0/COUNT(*), 1) AS q4_pct
             FROM contracts WHERE {scope_filter} AND instrument_type IN ('A','C','SOSA')
-            GROUP BY instrument_type ORDER BY q4_pct DESC
+            GROUP BY instrument_type
         """)
         if not inst.empty:
-            fig_share.add_trace(go.Bar(x=inst["type"], y=inst["q4_pct"],
-                marker_color=[RED if p > 30 else ORANGE if p > 25 else BLUE for p in inst["q4_pct"]],
-                text=[f"{v}%" for v in inst["q4_pct"]], textposition="outside", cliponaxis=False,
-                hovertemplate="<b>%{x}</b><br>Q4 share: %{y:.1f}%<extra></extra>", showlegend=False), row=1, col=i+1)
-    fig_share.add_hline(y=25, line_dash="dash", line_color=GRAY, annotation_text="Expected 25%")
-    fig_share.update_layout(height=400, template="plotly_white",
-        title="Q4 share by transaction type", margin=dict(t=60))
-    fig_share.update_yaxes(title_text="% in Q4", row=1, col=1)
+            inst_dict = dict(zip(inst["type"], inst["q4_pct"]))
+            for cat in cat_order:
+                val = inst_dict.get(cat)
+                if val is not None:
+                    fig_share.add_trace(go.Bar(y=[cat], x=[val], orientation="h",
+                        marker_color=cat_colors[cat],
+                        text=[f"{val}%"], textposition="outside", cliponaxis=False,
+                        textfont=dict(size=13, color="black"),
+                        hovertemplate=f"<b>{cat}</b><br>Q4 share: {val}%<extra></extra>",
+                        showlegend=False), row=1, col=i+1)
+    fig_share.add_vline(x=25, line_dash="dash", line_color="#333333", line_width=2,
+        annotation=dict(text="Expected 25%", font=dict(size=12, color="#333333")))
+    fig_share.update_layout(height=350, template="plotly_white", font=dict(size=13, color="black"),
+        title="Amendments are even more concentrated in Q4 than new contracts", margin=dict(t=60))
+    fig_share.update_xaxes(title_text="% in Q4", row=1, col=2)
+    fig_share.update_yaxes(showticklabels=True, col=1)
+    fig_share.update_yaxes(showticklabels=False, col=2)
+    fig_share.update_yaxes(showticklabels=False, col=3)
     st.plotly_chart(fig_share, use_container_width=True)
-    st.caption("Dashed line = expected 25% if spending were even. Amendments are consistently more concentrated in Q4 than new contracts.")
+    st.caption("If spending were even across quarters, each would get 25% (dashed line). Amendments consistently exceed this more than new contracts - year-end pressure expands existing deals, not just new ones.")
 
     # Row 3: Top departments by Q4 value multiplier by scope
     if selected_dept == "All Departments":
@@ -282,17 +296,19 @@ with tab1:
                 ORDER BY q4_multiplier DESC LIMIT 5
             """)
             if not dept.empty:
+                dept_colors = ["#7B5EA7", "#D48A20", "#2A5F8F", "#3D8B3D", "#E07B54"][:len(dept)]
                 fig_dept.add_trace(go.Bar(x=dept["dept_name"], y=dept["q4_multiplier"],
-                    marker_color=[RED if v > 2 else ORANGE if v > 1.5 else BLUE for v in dept["q4_multiplier"]],
+                    marker_color=dept_colors,
                     text=[f"{v}x" for v in dept["q4_multiplier"]], textposition="outside", cliponaxis=False,
+                    textfont=dict(size=13, color="black"),
                     showlegend=False), row=1, col=i+1)
-        fig_dept.add_hline(y=1.0, line_dash="dash", line_color=GRAY)
-        fig_dept.update_layout(height=500, template="plotly_white",
-            title="Top departments by Q4 value multiplier", margin=dict(t=60, b=120))
+        fig_dept.add_hline(y=1.0, line_dash="dash", line_color="#333333", line_width=2)
+        fig_dept.update_layout(height=500, template="plotly_white", font=dict(size=13, color="black"),
+            title="Which departments have the worst Q4 surge?", margin=dict(t=60, b=120))
         fig_dept.update_yaxes(title_text="Q4 avg / Q1-Q3 avg", row=1, col=1)
         fig_dept.update_xaxes(tickangle=-45)
         st.plotly_chart(fig_dept, use_container_width=True)
-        st.caption("Departments where Q4 contract values are highest relative to other quarters. 1.0x = no difference.")
+        st.caption("A 5x multiplier means Q4 contracts are worth 5x more than Q1-Q3 average. Dashed line at 1.0x = no difference. These departments need the most Q3 early warnings.")
 
     # Finding + actions
     col_f, col_w, col_a = st.columns(3)
@@ -302,7 +318,6 @@ with tab1:
             "- Q4 sees 20% more procurement activity post-2019<br>"
             "- Construction contracts average 5.84x higher in Q4 (post-2019)<br>"
             "- Amendments more concentrated in Q4 (32.7%) than new contracts (27.5%)<br>"
-            "- Sole-source rate higher in Q4 (41.3% vs 39.1%)"
             '</div>', unsafe_allow_html=True)
     with col_w:
         st.markdown('<div class="insight-box">'
@@ -354,8 +369,8 @@ with tab2:
     """)
     am1, am2, am3 = st.columns(3)
     am1.metric("Amendment Rate (post-2019)", f"{amend_row[0]:.1f}%" if amend_row[0] else "N/A")
-    am2.metric("$ Added Through Amendments", f"${amendment_dollars[0]:.1f}B" if amendment_dollars[0] else "N/A")
-    am3.metric("Competitive vs Sole-Source", f"{comp_vs_sole[0]:.1f}% vs {comp_vs_sole[1]:.1f}%" if comp_vs_sole[0] else "N/A")
+    am2.metric("$ Added Through Amendments (post-2019)", f"${amendment_dollars[0]:.1f}B" if amendment_dollars[0] else "N/A")
+    am3.metric("Competitive vs Sole-Source (post-2019)", f"{comp_vs_sole[0]:.1f}% vs {comp_vs_sole[1]:.1f}%" if comp_vs_sole[0] else "N/A")
 
     st.markdown('<div class="insight-box">'
         "- Amendments modify existing contracts after award<br>"
@@ -377,19 +392,22 @@ with tab2:
         fig_ar.add_trace(go.Scatter(x=amend_rate["fiscal_year"], y=amend_rate["amend_pct"],
             mode="lines+markers+text", line=dict(color=ORANGE, width=3), marker=dict(size=7),
             text=[f"{v}%" for v in amend_rate["amend_pct"]], textposition="top center",
-            textfont=dict(size=10),
+            textfont=dict(size=13, color="black"),
             hovertemplate="<b>%{x}</b><br>Amendment rate: %{y:.1f}%<extra></extra>"))
-        fig_ar.add_hline(y=20, line_dash="dash", line_color=GRAY, annotation_text="20% baseline")
+        fig_ar.add_hline(y=20, line_dash="dash", line_color="#333333", line_width=2, annotation_text="20% baseline")
         fig_ar.add_vrect(x0="2019-2020", x1="2024-2025", fillcolor=BLUE, opacity=0.05,
             annotation_text="Mandatory reporting", annotation_position="top left")
-        fig_ar.update_layout(title=f"Amendment rate by fiscal year ({commodity_label})",
-            yaxis_title="% of rows that are amendments", template="plotly_white",
-            height=380, xaxis_tickangle=-45)
+        fig_ar.update_layout(title=f"Amendment rate doubled after mandatory reporting began ({commodity_label})",
+            yaxis_title="% of rows that are amendments", template="plotly_white", font=dict(size=13, color="black"),
+            height=380, xaxis_tickangle=-45, margin=dict(r=80))
         st.plotly_chart(fig_ar, use_container_width=True)
-        st.caption("Rate jumped from ~16% to ~25% after 2019 when reporting became mandatory. The shaded area marks the mandatory reporting era.")
+        st.caption("The jump from ~16% to ~25% coincides with mandatory reporting - the problem was always there, we just couldn't see it before. 1 in 4 transactions is now an amendment.")
 
-    # Row 2: Growth distribution by scope
-    fig_growth = make_subplots(rows=1, cols=3, subplot_titles=SCOPE_NAMES, shared_yaxes=True)
+    # Row 2: Growth distribution by scope (donut charts)
+    fig_growth = make_subplots(rows=1, cols=3, subplot_titles=SCOPE_NAMES,
+        specs=[[{"type": "pie"}, {"type": "pie"}, {"type": "pie"}]])
+    color_map = {"1-50%": BLUE, "51-100%": "#5A9DBF", "101-500%": ORANGE, "500%+": RED}
+    bucket_order = ["1-50%", "51-100%", "101-500%", "500%+"]
     for i, (scope_name, scope_filter) in enumerate(SCOPES):
         growth = fetch_df(f"""
             WITH g AS (
@@ -410,23 +428,22 @@ with tab2:
             GROUP BY bucket ORDER BY MIN(pct)
         """)
         if not growth.empty:
-            color_map = {"1-50%": BLUE, "51-100%": BLUE, "101-500%": ORANGE, "500%+": RED}
-            fig_growth.add_trace(go.Bar(
-                y=growth["bucket"], x=growth["share"], orientation="h",
-                marker_color=[color_map.get(b, GRAY) for b in growth["bucket"]],
-                text=[f"{s}%" for s in growth["share"]],
-                textposition="outside", cliponaxis=False,
-                hovertemplate="<b>%{y}</b><br>Share: %{x:.1f}%<extra></extra>", showlegend=False), row=1, col=i+1)
-    fig_growth.update_layout(title="How much do amended contracts grow?",
-        template="plotly_white", height=420, margin=dict(t=60))
-    fig_growth.update_yaxes(autorange="reversed")
-    fig_growth.update_xaxes(title_text="% of amended contracts", row=1, col=2)
+            fig_growth.add_trace(go.Pie(
+                labels=growth["bucket"], values=growth["share"],
+                marker=dict(colors=[color_map.get(b, GRAY) for b in growth["bucket"]]),
+                textinfo="label+percent", textfont=dict(size=12, color="black"),
+                hovertemplate="<b>%{label}</b><br>Share: %{value}%<extra></extra>",
+                hole=0.4, sort=False), row=1, col=i+1)
+    fig_growth.update_layout(title="~25% of amended contracts more than double in value",
+        template="plotly_white", font=dict(size=13, color="black"), height=420, margin=dict(t=60),
+        showlegend=False)
     st.plotly_chart(fig_growth, use_container_width=True)
-    st.caption("Only contracts that grew in value. Orange/red = more than doubled - these effectively bypass the original competitive process.")
+    st.caption("The orange and red slices represent contracts that more than doubled - at that point, the original competitive award price is meaningless.")
 
-    # Row 3: Top departments by amendment rate by scope
+    # Row 3: Top departments by amendment rate by scope (horizontal lollipop)
     if selected_dept == "All Departments":
-        fig_dept_amend = make_subplots(rows=1, cols=3, subplot_titles=SCOPE_NAMES, shared_yaxes=True)
+        fig_dept_amend = make_subplots(rows=1, cols=3, subplot_titles=SCOPE_NAMES, shared_xaxes=True)
+        da_colors = ["#C45A30", "#D48A20", "#2A5F8F", "#3D8B3D", "#7B5EA7"]
         for i, (scope_name, scope_filter) in enumerate(SCOPES):
             dept_amend = fetch_df(f"""
                 SELECT LEFT(department, 20) AS dept_name,
@@ -436,16 +453,27 @@ with tab2:
                 ORDER BY amend_rate DESC LIMIT 5
             """)
             if not dept_amend.empty:
-                fig_dept_amend.add_trace(go.Bar(x=dept_amend["dept_name"], y=dept_amend["amend_rate"],
-                    marker_color=[RED if v > 40 else ORANGE if v > 30 else BLUE for v in dept_amend["amend_rate"]],
-                    text=[f"{v}%" for v in dept_amend["amend_rate"]], textposition="outside", cliponaxis=False,
-                    showlegend=False), row=1, col=i+1)
-        fig_dept_amend.update_layout(height=500, template="plotly_white",
-            title="Top departments by amendment rate", margin=dict(t=60, b=120))
-        fig_dept_amend.update_yaxes(title_text="Amendment rate (%)", row=1, col=1)
-        fig_dept_amend.update_xaxes(tickangle=-45)
+                for j, (_, row) in enumerate(dept_amend.iterrows()):
+                    color = da_colors[j % len(da_colors)]
+                    fig_dept_amend.add_trace(go.Scatter(
+                        x=[0, row["amend_rate"]], y=[row["dept_name"], row["dept_name"]],
+                        mode="lines", line=dict(color=color, width=3),
+                        showlegend=False, hoverinfo="skip"), row=1, col=i+1)
+                    fig_dept_amend.add_trace(go.Scatter(
+                        x=[row["amend_rate"]], y=[row["dept_name"]],
+                        mode="markers+text", marker=dict(size=12, color=color),
+                        text=[f"{row['amend_rate']}%"], textposition="middle right",
+                        textfont=dict(size=13, color="black"),
+                        hovertemplate=f"<b>{row['dept_name']}</b><br>Amendment rate: {row['amend_rate']}%<extra></extra>",
+                        showlegend=False), row=1, col=i+1)
+        fig_dept_amend.update_layout(height=450, template="plotly_white", font=dict(size=13, color="black"),
+            title="Which departments amend the most?", margin=dict(t=60, r=80))
+        fig_dept_amend.update_xaxes(title_text="Amendment rate (%)", row=1, col=2, range=[0, 65])
+        fig_dept_amend.update_yaxes(autorange="reversed", showticklabels=True, col=1)
+        fig_dept_amend.update_yaxes(showticklabels=False, col=2)
+        fig_dept_amend.update_yaxes(showticklabels=False, col=3)
         st.plotly_chart(fig_dept_amend, use_container_width=True)
-        st.caption("Departments with the highest share of amendment rows. CRA has more amendments than new contracts post-2019.")
+        st.caption("CRA's 51% means more than half of all their contract rows are amendments, not new awards. These departments should be priority targets for amendment thresholds.")
 
     # Row 4: Top grown contracts (all years)
     st.subheader("Largest contract growth (excl. Defence)")
@@ -537,70 +565,63 @@ with tab3:
         JOIN v ON c.vendor_name = v.vendor_name
         WHERE {cf}
     """)
-    per_contract = fetch_one(f"""
+    top50_amend = fetch_one(f"""
         WITH v AS (
             SELECT vendor_name, SUM(cv) as total_val,
                    ROW_NUMBER() OVER (ORDER BY SUM(cv) DESC) as rn
             FROM contracts WHERE {cf} AND vendor_name IS NOT NULL
             GROUP BY vendor_name
-        ),
-        growth AS (
-            SELECT CASE WHEN v.rn <= 50 THEN 'Top 50' ELSE 'Others' END as tier,
-                TRY_CAST(MIN(original_value) AS DOUBLE) AS orig,
-                TRY_CAST(MAX(contract_value) AS DOUBLE) AS final_val
-            FROM contracts c
-            JOIN v ON c.vendor_name = v.vendor_name
-            WHERE {cf} AND era IN ('2019-2022','Post-2022') AND procurement_id IS NOT NULL
-            GROUP BY tier, procurement_id
-            HAVING COUNT(*) > 1 AND COUNT(DISTINCT instrument_type) > 1
         )
-        SELECT ROUND(AVG(CASE WHEN tier='Top 50' THEN final_val - orig END)/1e6, 1),
-            ROUND(AVG(CASE WHEN tier='Others' THEN final_val - orig END)/1e3, 0)
-        FROM growth WHERE orig > 0
+        SELECT
+            ROUND(100.0 * SUM(CASE WHEN v.rn<=50 AND c.instrument_type='A' THEN 1 ELSE 0 END) /
+                NULLIF(SUM(CASE WHEN v.rn<=50 THEN 1 ELSE 0 END), 0), 1),
+            ROUND(100.0 * SUM(CASE WHEN v.rn>50 AND c.instrument_type='A' THEN 1 ELSE 0 END) /
+                NULLIF(SUM(CASE WHEN v.rn>50 THEN 1 ELSE 0 END), 0), 1)
+        FROM contracts c
+        JOIN v ON c.vendor_name = v.vendor_name
+        WHERE {cf} AND c.era IN ('2019-2022','Post-2022')
     """)
     vm1, vm2, vm3 = st.columns(3)
-    vm1.metric("Top 50 Share of Spend", f"{vc_row[0]:.1f}%" if vc_row[0] else "N/A")
-    vm2.metric("Concentration Trend (2019 to 2024)",
-        f"{conc_trend[0]:.0f}% to {conc_trend[1]:.0f}%" if conc_trend[0] and conc_trend[1] else "N/A")
-    vm3.metric("Avg Amendment Growth: Top 50 vs Others",
-        f"${per_contract[0]:.1f}M vs ${per_contract[1]:.0f}K" if per_contract[0] else "N/A")
+    vm1.metric("Top 50 Share of Spend", f"{vc_row[0]:.1f}%")
+    vm2.metric("Top 50 Share in 2024-2025", f"{conc_trend[1]:.0f}%" if conc_trend[1] else "N/A")
+    vm3.metric("Top 50 Amendment Rate", f"{top50_amend[0]:.1f}%" if top50_amend[0] else "N/A")
 
     st.markdown('<div class="insight-box">'
         "- 126,000+ vendors in the dataset - is spending spread broadly or concentrated?<br>"
         "- Do the biggest vendors benefit disproportionately from amendments (Insight 2)?"
         '</div>', unsafe_allow_html=True)
 
-    # Row 1: Vendor concentration by scope
+    # Row 1: Concentration trend over time (line chart)
+    # Row 1: Vendor concentration by scope (non-cumulative split)
     fig_conc = make_subplots(rows=1, cols=3, subplot_titles=SCOPE_NAMES, shared_yaxes=True)
     for i, (scope_name, scope_filter) in enumerate(SCOPES):
         conc = fetch_df(f"""
             WITH v AS (
                 SELECT vendor_name, SUM(cv) as total_val,
-                       ROW_NUMBER() OVER (ORDER BY SUM(cv) DESC) as rn
+                       ROW_NUMBER() OVER (ORDER BY SUM(cv) DESC) as rn,
+                       COUNT(*) OVER () as total_vendors
                 FROM contracts WHERE {scope_filter} AND vendor_name IS NOT NULL
                 GROUP BY vendor_name
             ),
             gt AS (SELECT SUM(total_val) as g FROM v)
-            SELECT
-                'Top 10' AS tier, ROUND(SUM(total_val)*100.0/(SELECT g FROM gt), 1) AS pct FROM v WHERE rn<=10
-            UNION ALL SELECT
-                'Top 50', ROUND(SUM(total_val)*100.0/(SELECT g FROM gt), 1) FROM v WHERE rn<=50
-            UNION ALL SELECT
-                'Top 100', ROUND(SUM(total_val)*100.0/(SELECT g FROM gt), 1) FROM v WHERE rn<=100
-            UNION ALL SELECT
-                'Top 500', ROUND(SUM(total_val)*100.0/(SELECT g FROM gt), 1) FROM v WHERE rn<=500
+            SELECT 'Top 10' AS tier, ROUND(SUM(total_val)*100.0/(SELECT g FROM gt), 1) AS pct, 1 AS sort_order FROM v WHERE rn<=10
+            UNION ALL SELECT 'Next 50', ROUND(SUM(total_val)*100.0/(SELECT g FROM gt), 1), 2 FROM v WHERE rn>10 AND rn<=60
+            UNION ALL SELECT 'Next 100', ROUND(SUM(total_val)*100.0/(SELECT g FROM gt), 1), 3 FROM v WHERE rn>60 AND rn<=160
+            UNION ALL SELECT 'Next 500', ROUND(SUM(total_val)*100.0/(SELECT g FROM gt), 1), 4 FROM v WHERE rn>160 AND rn<=660
+            ORDER BY sort_order
         """)
         if not conc.empty:
             fig_conc.add_trace(go.Bar(
                 x=conc["tier"], y=conc["pct"],
-                marker_color=[RED, ORANGE, BLUE, BLUE],
+                marker_color=[RED, ORANGE, BLUE, GREEN],
                 text=[f"{v}%" for v in conc["pct"]], textposition="outside", cliponaxis=False,
+                textfont=dict(size=13, color="black"),
                 hovertemplate="<b>%{x}</b><br>Share: %{y:.1f}%<extra></extra>", showlegend=False), row=1, col=i+1)
-    fig_conc.update_layout(title="Vendor concentration",
-        template="plotly_white", height=400, margin=dict(t=60))
+    fig_conc.update_layout(title="10 vendors get nearly as much as 125,000+ others combined",
+        template="plotly_white", font=dict(size=13, color="black"), height=420, margin=dict(t=60))
     fig_conc.update_yaxes(title_text="% of total spend", row=1, col=1)
     st.plotly_chart(fig_conc, use_container_width=True)
-    st.caption("A small number of vendors capture a disproportionate share of spending across all eras.")
+    st.caption("Each bar shows that group's own share (not cumulative). Notice how 10 vendors alone capture nearly as much as 125,000+ others combined.")
 
     # Row 2: Amendment rate by vendor tier by scope
     fig_tier = make_subplots(rows=1, cols=3, subplot_titles=SCOPE_NAMES, shared_yaxes=True)
@@ -627,12 +648,13 @@ with tab3:
                 x=tier_amend["tier"], y=tier_amend["amend_rate"],
                 marker_color=[RED, BLUE],
                 text=[f"{v}%" for v in tier_amend["amend_rate"]], textposition="outside", cliponaxis=False,
+                textfont=dict(size=13, color="black"),
                 hovertemplate="<b>%{x}</b><br>Amendment rate: %{y:.1f}%<extra></extra>", showlegend=False), row=1, col=i+1)
-    fig_tier.update_layout(title="Amendment rate by vendor tier",
-        template="plotly_white", height=400, margin=dict(t=60))
+    fig_tier.update_layout(title="Top vendors get amended nearly 2x more than others",
+        template="plotly_white", font=dict(size=13, color="black"), height=400, margin=dict(t=60))
     fig_tier.update_yaxes(title_text="Amendment rate (%)", row=1, col=1)
     st.plotly_chart(fig_tier, use_container_width=True)
-    st.caption("Top vendors consistently have higher amendment rates, meaning they benefit from both the initial award and subsequent scope expansion.")
+    st.caption("They don't just win more contracts - their contracts grow more after award. This is how concentration self-reinforces through the amendment cycle.")
 
     # Row 3: Department dependency (all years)
     st.subheader("Single-vendor dependency by department")

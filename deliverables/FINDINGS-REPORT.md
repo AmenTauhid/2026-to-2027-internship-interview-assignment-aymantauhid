@@ -50,7 +50,6 @@
 - Q4 sees 20% more procurement activity post-2019
 - Construction contracts average 5.84x higher in Q4 (post-2019)
 - Amendments more concentrated in Q4 (32.7%) than new contracts (27.5%)
-- Sole-source rate higher in Q4 (41.3% vs 39.1%)
 
 ### Why it matters
 
