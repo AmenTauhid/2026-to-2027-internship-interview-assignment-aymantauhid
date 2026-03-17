@@ -27,17 +27,17 @@ st.markdown("""
 <style>
     .block-container {padding-top: 1rem; padding-bottom: 1rem;}
     [data-testid="stMetricValue"] {font-size: 1.8rem;}
-    [data-testid="stMetricLabel"] {font-size: 0.9rem; color: #555;}
+    [data-testid="stMetricLabel"] {font-size: 0.9rem; color: #000000;}
     .insight-box {
-        background: #f0f4f8; border-left: 4px solid #4878A8;
+        background: #f0f4f8; border-left: 4px solid #2A5F8F;
         padding: 1rem 1.2rem; margin: 1rem 0; border-radius: 0 6px 6px 0;
     }
     .finding-box {
-        background: #fdf0f0; border-left: 4px solid #D04040;
+        background: #fdf0f0; border-left: 4px solid #B82020;
         padding: 1rem 1.2rem; margin: 1rem 0; border-radius: 0 6px 6px 0;
     }
     .action-box {
-        background: #f0fdf0; border-left: 4px solid #6BAF6B;
+        background: #f0fdf0; border-left: 4px solid #3D8B3D;
         padding: 1rem 1.2rem; margin: 1rem 0; border-radius: 0 6px 6px 0;
     }
     div[data-testid="stHorizontalBlock"] > div {padding: 0 0.3rem;}
@@ -193,9 +193,9 @@ st.markdown("---")
 # ===================================================================
 
 tab1, tab2, tab3, tab5 = st.tabs([
-    "Insight 1: Q4 Spending Surge",
-    "Insight 2: Amendment Growth",
-    "Insight 3: Vendor Concentration",
+    "1. Q4 Spending Surge",
+    "2. Amendment Growth",
+    "3. Vendor Concentration",
     "Next Steps",
 ])
 
@@ -244,7 +244,7 @@ with tab1:
                 textfont=dict(size=13, color="black"),
                 hovertemplate="<b>%{x}</b><br>Avg: $%{y:,.0f}<extra></extra>", showlegend=False), row=1, col=i+1)
     fig_avg.update_layout(height=420, template="plotly_white", font=dict(size=13, color="black"),
-        title="Q4 contracts are worth more - especially post-2019", margin=dict(t=60, b=10))
+        title="Q4 contracts are worth more - especially post-2019", margin=dict(t=60, b=10, r=40))
     fig_avg.update_yaxes(rangemode="tozero", title_text="Avg contract value ($)", row=1, col=1)
     st.plotly_chart(fig_avg, use_container_width=True)
     st.caption("Pre-2019 shows no Q4 premium (voluntary reporting skews data). Post-2019 reveals the real pattern: Q4 contracts are 1.45x more expensive.")
@@ -275,7 +275,7 @@ with tab1:
     fig_share.add_vline(x=25, line_dash="dash", line_color="#333333", line_width=2,
         annotation=dict(text="Expected 25%", font=dict(size=12, color="#333333")))
     fig_share.update_layout(height=350, template="plotly_white", font=dict(size=13, color="black"),
-        title="Amendments are even more concentrated in Q4 than new contracts", margin=dict(t=60))
+        title="Amendments are even more concentrated in Q4 than new contracts", margin=dict(t=60, r=40))
     fig_share.update_xaxes(title_text="% in Q4", row=1, col=2)
     fig_share.update_yaxes(showticklabels=True, col=1)
     fig_share.update_yaxes(showticklabels=False, col=2)
@@ -315,9 +315,10 @@ with tab1:
     with col_f:
         st.markdown('<div class="finding-box">'
             "<b>The pattern</b><br>"
-            "- Q4 sees 20% more procurement activity post-2019<br>"
+            "- Q4 sees 20% more procurement activity (post-2019)<br>"
             "- Construction contracts average 5.84x higher in Q4 (post-2019)<br>"
             "- Amendments more concentrated in Q4 (32.7%) than new contracts (27.5%)<br>"
+            "- Sole-source rate higher in Q4 (41.3% vs 39.1%)"
             '</div>', unsafe_allow_html=True)
     with col_w:
         st.markdown('<div class="insight-box">'
@@ -370,7 +371,7 @@ with tab2:
     am1, am2, am3 = st.columns(3)
     am1.metric("Amendment Rate (post-2019)", f"{amend_row[0]:.1f}%" if amend_row[0] else "N/A")
     am2.metric("$ Added Through Amendments (post-2019)", f"${amendment_dollars[0]:.1f}B" if amendment_dollars[0] else "N/A")
-    am3.metric("Competitive vs Sole-Source (post-2019)", f"{comp_vs_sole[0]:.1f}% vs {comp_vs_sole[1]:.1f}%" if comp_vs_sole[0] else "N/A")
+    am3.metric("Amendment Rate: Competitive (post-2019)", f"{comp_vs_sole[0]:.1f}%" if comp_vs_sole[0] else "N/A")
 
     st.markdown('<div class="insight-box">'
         "- Amendments modify existing contracts after award<br>"
@@ -534,7 +535,7 @@ with tab2:
 # ===================================================================
 
 with tab3:
-    st.header("Spending is concentrated in a few vendors - and they get amended more")
+    st.header("A few vendors capture most of the spend - and grow through amendments")
 
     # Headline metrics
     vc_row = fetch_one(f"""
@@ -591,8 +592,7 @@ with tab3:
         "- Do the biggest vendors benefit disproportionately from amendments (Insight 2)?"
         '</div>', unsafe_allow_html=True)
 
-    # Row 1: Concentration trend over time (line chart)
-    # Row 1: Vendor concentration by scope (non-cumulative split)
+    # Row 1: Vendor concentration (non-cumulative split)
     fig_conc = make_subplots(rows=1, cols=3, subplot_titles=SCOPE_NAMES, shared_yaxes=True)
     for i, (scope_name, scope_filter) in enumerate(SCOPES):
         conc = fetch_df(f"""
@@ -618,7 +618,7 @@ with tab3:
                 textfont=dict(size=13, color="black"),
                 hovertemplate="<b>%{x}</b><br>Share: %{y:.1f}%<extra></extra>", showlegend=False), row=1, col=i+1)
     fig_conc.update_layout(title="10 vendors get nearly as much as 125,000+ others combined",
-        template="plotly_white", font=dict(size=13, color="black"), height=420, margin=dict(t=60))
+        template="plotly_white", font=dict(size=13, color="black"), height=420, margin=dict(t=60, r=40))
     fig_conc.update_yaxes(title_text="% of total spend", row=1, col=1)
     st.plotly_chart(fig_conc, use_container_width=True)
     st.caption("Each bar shows that group's own share (not cumulative). Notice how 10 vendors alone capture nearly as much as 125,000+ others combined.")
@@ -651,13 +651,13 @@ with tab3:
                 textfont=dict(size=13, color="black"),
                 hovertemplate="<b>%{x}</b><br>Amendment rate: %{y:.1f}%<extra></extra>", showlegend=False), row=1, col=i+1)
     fig_tier.update_layout(title="Top vendors get amended nearly 2x more than others",
-        template="plotly_white", font=dict(size=13, color="black"), height=400, margin=dict(t=60))
+        template="plotly_white", font=dict(size=13, color="black"), height=400, margin=dict(t=60, r=40))
     fig_tier.update_yaxes(title_text="Amendment rate (%)", row=1, col=1)
     st.plotly_chart(fig_tier, use_container_width=True)
     st.caption("They don't just win more contracts - their contracts grow more after award. This is how concentration self-reinforces through the amendment cycle.")
 
     # Row 3: Department dependency (all years)
-    st.subheader("Single-vendor dependency by department")
+    st.subheader("Which departments rely most on a single vendor?")
     dept_dep = fetch_df(f"""
         WITH dept_vendor AS (
             SELECT department, vendor_name, SUM(cv) as vendor_total,
